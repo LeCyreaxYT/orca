@@ -53,9 +53,11 @@ const WorktreeCardAgents = React.memo(function WorktreeCardAgents({
   useUiLanguageRevision()
   const selectedAgents = useWorktreeAgentRows(worktreeId, precomputedAgents === undefined)
   const agents = precomputedAgents ?? selectedAgents
-  const displayMode = useAppStore((state) => state.agentActivityDisplayMode)
+  const showEmptyGroups = useAppStore(
+    (state) => state.agentActivityDisplayMode === 'full' && state.activeWorktreeId === worktreeId
+  )
   if (agents.length === 0) {
-    if (displayMode === 'full') {
+    if (showEmptyGroups) {
       return <SidebarChatGroups worktreeId={worktreeId} agents={agents} renderAgent={() => null} />
     }
     return null
