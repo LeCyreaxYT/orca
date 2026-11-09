@@ -3,6 +3,7 @@ import {
   structuredAgentSessionCatalogScopeOwned
 } from '../options/structured-agent-session-catalog-reads'
 import { revealStructuredAgentSession } from './structured-agent-session-reveal'
+import { createStructuredAgentSessionHistoryRefresh } from '../acquisition/structured-agent-session-history-refresh'
 import type { StructuredAgentSessionClientDelivery } from '../publication/subscribers/structured-agent-session-client-delivery'
 import type { AgentSessionExecutionLocation } from '../../../../shared/agent-session/lifecycle/agent-session-record'
 import type { StructuredAttentionRead } from '../../../../shared/agent-session/agent-session-attention'
@@ -55,6 +56,11 @@ export function createStructuredAgentSessionConversationReads(context: () => Rea
   }))
   const journalOf = async (id: string) => (await context().conversation(id)).journal
   return {
+    refreshHistory: createStructuredAgentSessionHistoryRefresh(
+      () => context().deps,
+      (id) => context().conversation(id),
+      (id, task) => context().serialize(id, task)
+    ),
     journalCurrentRead: async (sessionId: string, inputIds?: readonly string[]) =>
       (await context().conversation(sessionId)).journal.currentRead(inputIds),
 

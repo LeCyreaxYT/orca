@@ -1,0 +1,61 @@
+name: Native chat fork (Windows)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [feat/native-chat-refresh-sidebar]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-chat-fork-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    if: github.repository == 'LeCyreaxYT/orca'
+    runs-on: windows-2022
+    timeout-minutes: 60
+    env:
+      ORCA_BACKGROUND_LAUNCH: '1'
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            mobile/pnpm-lock.yaml
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: config/.bun-version
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/install-mobile-dependencies
+      - name: Typecheck
+        run: pnpm tc
+      - name: Verify conversation refresh and native resume
+        run: >-
+          pnpm test
+          src/main/native-chat/agent-session-wire/acquisition/structured-agent-session-history-refresh.test.ts
+          src/main/native-chat/agent-session-journal/history-import/journal-legacy-import.test.ts
+          src/main/native-chat/agent-session-journal/history-import/journal-codex-history.test.ts
+          src/renderer/src/lib/agent-session/resume/history/ai-vault-session-drag.test.ts
+          src/renderer/src/components/right-sidebar/ai-vault/session-actions/ai-vault-session-resume-in-chat-workspace.test.ts
+          --maxWorkers=2
+      - name: Build app
+        run: pnpm build:release
+      - name: Package separate test fork
+        run: pnpm exec electron-builder --config config/electron-builder.sky.cjs --win --publish never
+      - uses: actions/upload-artifact@v7
+        with:
+          name: orca-sky-windows
+          path: dist-sky/orca-sky-windows-x64.zip
+          if-no-files-found: error
+          retention-days: 14

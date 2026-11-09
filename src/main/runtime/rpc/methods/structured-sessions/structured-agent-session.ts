@@ -45,6 +45,7 @@ import {
   CreateParams,
   CreateSupportParams,
   HistoryParams,
+  RefreshHistoryParams,
   RewindParams,
   SendParams,
   SleepWorkspaceParams,
@@ -164,6 +165,13 @@ export const STRUCTURED_AGENT_SESSION_METHODS = [
     }
   }),
   ...STRUCTURED_AGENT_SESSION_PROMPT_RESPONSE_METHODS,
+  defineMethod({
+    name: 'agentSession.refreshHistory',
+    permission: 'workspace',
+    params: RefreshHistoryParams,
+    handler: async (params, ctx) =>
+      (await requireInstalledHost(ctx, params.sessionId)).reads.refreshHistory(params.sessionId)
+  }),
   defineMethod({
     name: 'agentSession.history',
     permission: 'workspace',

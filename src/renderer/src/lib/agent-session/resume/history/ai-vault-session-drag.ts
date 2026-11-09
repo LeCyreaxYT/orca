@@ -1,7 +1,10 @@
 import {
   isAiVaultAgent,
-  type AiVaultAgent
+  type AiVaultAgent,
+  type AiVaultSession
 } from '../../../../../../shared/ai-vault/contracts/ai-vault-types'
+import { z } from 'zod'
+import { AiVaultSessionAccountHomeSchema } from '../../../../../../shared/ai-vault/contracts/ai-vault-session-account-home'
 import type { SleepingAgentLaunchConfig } from '../../../../../../shared/agent-session/lifecycle/agent-session-resume'
 import { measureUtf8ByteLength } from '../../../../../../shared/utf8-byte-limits'
 import {
@@ -13,6 +16,60 @@ export const AI_VAULT_SESSION_DRAG_TYPE = 'application/x-orca-ai-vault-session'
 export const AI_VAULT_SESSION_DRAG_START_EVENT = 'orca-ai-vault-session-drag-start'
 export const AI_VAULT_SESSION_DRAG_END_EVENT = 'orca-ai-vault-session-drag-end'
 export const AI_VAULT_SESSION_DRAG_PAYLOAD_MAX_BYTES = 16 * 1024
+
+// Carry only source metadata; conversation text is neither needed nor bounded enough for a drag.
+const nativeSessionSchema = z.object({
+  id: z.string().min(1),
+  agent: z.enum(['codex', 'claude']),
+  sessionId: z.string().min(1),
+  executionHostId: z
+    .string()
+    .transform(normalizeExecutionHostId)
+    .refine((value): value is ExecutionHostId => value !== null),
+  executionHostPlatform: z
+    .enum([
+      'aix',
+      'android',
+      'darwin',
+      'freebsd',
+      'haiku',
+      'linux',
+      'openbsd',
+      'sunos',
+      'win32',
+      'cygwin',
+      'netbsd'
+    ])
+    .nullable()
+    .optional(),
+  title: z.string(),
+  cwd: z.string().nullable(),
+  cwdAliases: z.array(z.string()).optional(),
+  branch: z.string().nullable(),
+  model: z.string().nullable(),
+  filePath: z.string().min(1),
+  codexHome: z.string().nullable(),
+  accountHome: AiVaultSessionAccountHomeSchema,
+  accountWslDistro: z.string().nullable().optional(),
+  createdAt: z.string().nullable(),
+  updatedAt: z.string().nullable(),
+  modifiedAt: z.string(),
+  messageCount: z.number().int().nonnegative(),
+  totalTokens: z.number().nonnegative(),
+  previewMessages: z.tuple([]),
+  queuedMessageCount: z.number().int().nonnegative(),
+  subagentTranscriptCount: z.number().int().nonnegative(),
+  resumeCommand: z.string(),
+  subagent: z.null(),
+  structuredSession: z
+    .object({ sessionId: z.string().min(1), workspaceId: z.string().min(1) })
+    .optional()
+})
+
+export function nativeAiVaultSessionForDrag(session: AiVaultSession): AiVaultSession | undefined {
+  const result = nativeSessionSchema.safeParse({ ...session, previewMessages: [] })
+  return result.success ? result.data : undefined
+}
 
 export type AiVaultSessionDragPayload = {
   agent: AiVaultAgent
@@ -36,6 +93,7 @@ export type AiVaultSessionDragPayload = {
     envToDelete?: string[]
     launchConfig?: SleepingAgentLaunchConfig
   }
+  nativeSession?: AiVaultSession
 }
 
 let activeAiVaultSessionDragPayload: AiVaultSessionDragPayload | null = null
@@ -114,7 +172,12 @@ function isSerializedPayload(value: unknown): value is SerializedAiVaultSessionD
     (payload.env === undefined || isStringRecord(payload.env)) &&
     (payload.envToDelete === undefined || isEnvDeletionList(payload.envToDelete)) &&
     (payload.launchConfig === undefined || isLaunchConfig(payload.launchConfig)) &&
-    (payload.realHomeStartup === undefined || isResumeStartup(payload.realHomeStartup))
+    (payload.realHomeStartup === undefined || isResumeStartup(payload.realHomeStartup)) &&
+    (payload.nativeSession === undefined ||
+      (nativeSessionSchema.safeParse(payload.nativeSession).success &&
+        payload.nativeSession.sessionId === payload.sessionId &&
+        payload.nativeSession.agent === payload.agent &&
+        payload.nativeSession.executionHostId === payload.sessionExecutionHostId))
   )
 }
 
@@ -187,7 +250,8 @@ export function readAiVaultSessionDragData(
       env,
       envToDelete,
       launchConfig,
-      realHomeStartup
+      realHomeStartup,
+      nativeSession
     } = parsed
     return {
       agent,
@@ -202,7 +266,8 @@ export function readAiVaultSessionDragData(
       ...(env ? { env } : {}),
       ...(envToDelete ? { envToDelete } : {}),
       ...(launchConfig ? { launchConfig } : {}),
-      ...(realHomeStartup ? { realHomeStartup } : {})
+      ...(realHomeStartup ? { realHomeStartup } : {}),
+      ...(nativeSession ? { nativeSession: nativeSessionSchema.parse(nativeSession) } : {})
     }
   } catch {
     return null

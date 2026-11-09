@@ -13,6 +13,8 @@ import { NativeChatResumeInCliButton } from './NativeChatResumeInCliButton'
 import { NativeChatSettingsButton } from '../../appearance/NativeChatSettingsButton'
 import type { NativeChatStructuredViewProps } from '../../native-chat-view-types'
 import type { NativeChatHandOff } from './use-native-chat-hand-off'
+import { NativeChatHistoryRefreshButton } from './NativeChatHistoryRefreshButton'
+import type { RuntimeClientTarget } from '../../../../../../shared/runtime-client-target'
 
 const HEADER_STYLE: React.CSSProperties & Record<'--orca-pane-title-bg', string> = {
   '--orca-pane-title-bg': 'var(--chat-canvas)'
@@ -27,7 +29,8 @@ export function NativeChatPaneHeader({
   nativeChat,
   focused,
   colorScheme,
-  handOff
+  handOff,
+  target
 }: {
   tabId: string
   worktreeId: string
@@ -36,6 +39,7 @@ export function NativeChatPaneHeader({
   focused: boolean
   colorScheme: React.CSSProperties['colorScheme']
   handOff?: NativeChatHeaderHandOff
+  target?: RuntimeClientTarget
 }): React.JSX.Element {
   const t = useTranslate()
   const actions = useStructuredChatPaneActions(tabId, worktreeId, groupId)
@@ -56,6 +60,7 @@ export function NativeChatPaneHeader({
       style={HEADER_STYLE}
     >
       <div className="pane-title-actions ml-auto flex shrink-0 items-center gap-0">
+        <NativeChatHistoryRefreshButton {...nativeChat} target={target} />
         {handOff && focused ? (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -138,7 +143,8 @@ export function nativeChatPaneHeader(
     | 'isVisible'
     | 'isFocusedGroup'
     | 'contextMenuActions'
-  >,
+  > &
+    Partial<Pick<NativeChatStructuredViewProps, 'target'>>,
   worktreeId: string | null,
   colorScheme: React.CSSProperties['colorScheme'],
   handOff?: NativeChatHandOff
@@ -151,6 +157,7 @@ export function nativeChatPaneHeader(
       nativeChat={{ sessionId: view.sessionId, agent: view.agent }}
       focused={view.isFocusedGroup}
       colorScheme={colorScheme}
+      target={view.target}
       handOff={
         handOff?.available
           ? { open: handOff.open, disabled: handOff.preparing || handOff.dialog !== null }

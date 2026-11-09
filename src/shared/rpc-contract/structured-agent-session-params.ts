@@ -326,6 +326,8 @@ export const RestartResumeParams = z
   .object({ sessionIds: z.array(SessionId).max(MAX_RESTART_RESUME_SESSIONS).optional() })
   .strict()
 
+export const RefreshHistoryParams = z.object({ sessionId: SessionId }).strict()
+
 export const HistoryParams = z
   .object({
     sessionId: SessionId,

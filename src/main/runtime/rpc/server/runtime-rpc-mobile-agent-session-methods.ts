@@ -28,6 +28,7 @@ export const MOBILE_AGENT_SESSION_RPC_METHODS = [
   'agentSession.threadGoal',
   'agentSession.commands',
   'agentSession.history',
+  'agentSession.refreshHistory',
   'agentSession.currentRequests',
   'agentSession.subscribe',
   'agentSession.unsubscribe',

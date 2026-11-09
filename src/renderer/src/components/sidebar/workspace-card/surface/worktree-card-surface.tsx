@@ -9,6 +9,7 @@ import { getWorktreeCardFrameGeometry } from './worktree-card-frame-geometry'
 import type { WorktreeCardController } from '../controller/use-worktree-card-controller'
 import { DEFAULT_WORKSPACE_CARD_TEMPLATE } from '../template/default-workspace-card'
 import { renderWorkspaceCardTemplate } from '../template/render-workspace-card-template'
+import { useWorktreeSessionDrop } from './use-worktree-session-drop'
 
 export function WorktreeCardSurface({ card }: { card: WorktreeCardController }): React.JSX.Element {
   const {
@@ -44,6 +45,10 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
     setShowRenameErrorDialog,
     contentIndent
   } = card
+  const sessionDrop = useWorktreeSessionDrop(
+    worktree.id,
+    !affiliateListMode && !isDeleting && !titleRenaming && !isRuntimeDisconnected
+  )
   const isSleeping = useIsSleepingWorktree(worktree.id)
   const geometryFor = (statusLane: boolean) =>
     getWorktreeCardFrameGeometry({ flushSurface, contentIndent, statusLane })
@@ -68,7 +73,7 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
         flushSurface ? 'ml-1 w-[calc(100%-0.25rem)]' : 'ml-1',
         'overflow-hidden rounded-lg',
         // Navigation updates the live attribute before React; it must own the complete active style.
-        isLineageDropTarget
+        isLineageDropTarget || sessionDrop.hovering
           ? 'border border-worktree-sidebar-foreground/40 bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground ring-1 ring-inset ring-worktree-sidebar-ring/60'
           : isActiveSurface
             ? 'border border-transparent'
@@ -85,12 +90,15 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
       )}
       data-worktree-card-surface="true"
       data-worktree-card-active={
-        isActiveSurface && !isLineageDropTarget ? activeSurfaceVariant : undefined
+        isActiveSurface && !isLineageDropTarget && !sessionDrop.hovering
+          ? activeSurfaceVariant
+          : undefined
       }
       data-worktree-card-selected={
         (isMultiSelected && !isActiveSurface && !isLineageDropTarget) || undefined
       }
       data-worktree-lineage-drop-target={isLineageDropTarget || undefined}
+      data-worktree-session-drop-target={sessionDrop.hovering || undefined}
       onClick={handleClick}
       onPointerDown={affiliateListMode ? undefined : handlePointerDown}
       onPointerEnter={affiliateListMode ? undefined : handlePointerEnter}
@@ -99,6 +107,9 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
       draggable={!affiliateListMode && nativeDragEnabled && !isDeleting && !titleRenaming}
       onDragStart={!affiliateListMode && nativeDragEnabled ? handleDragStart : undefined}
       onDragEnd={!affiliateListMode && nativeDragEnabled ? handleDragEnd : undefined}
+      onDragOver={sessionDrop.onDragOver}
+      onDragLeave={sessionDrop.onDragLeave}
+      onDrop={sessionDrop.onDrop}
       aria-busy={isDeleting}
       style={cardStyle}
     >

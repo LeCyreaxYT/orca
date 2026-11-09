@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import {
   AI_VAULT_SESSION_DRAG_END_EVENT,
   AI_VAULT_SESSION_DRAG_START_EVENT,
+  nativeAiVaultSessionForDrag,
   writeAiVaultSessionDragData
 } from '@/lib/agent-session/resume/history/ai-vault-session-drag'
 import type {
@@ -137,6 +138,7 @@ export function VaultSessionRow({
         return
       }
       writeAiVaultSessionDragData(event.dataTransfer, {
+        nativeSession: nativeAiVaultSessionForDrag(session),
         agent: session.agent,
         sessionId: session.sessionId,
         ...(session.structuredSession ? { structuredSession: session.structuredSession } : {}),

@@ -76,6 +76,7 @@
     "failed": "Die Datei konnte nicht geöffnet werden."
   },
   "sidebar": {
+    "sessionDropUnavailable": "Dieser Chat kann hier nicht geöffnet werden. Nutze seinen ursprünglichen Arbeitsbereich auf dem Rechner, auf dem er gespeichert ist.",
     "revealFiltered": {
       "title": "Ausgeblendeten Arbeitsbereich anzeigen?",
       "description": "Der aktive Arbeitsbereich ist in der Seitenleiste ausgeblendet. Beim Anzeigen werden nur die Filter angepasst, die ihn ausblenden.",
@@ -20241,6 +20242,7 @@
         "many_one": "{{count}} Pull Request erstellt",
         "many_other": "{{count}} Pull Requests erstellt"
       },
+      "reloadHistory": "Chatverlauf neu laden",
       "splitRight": "Rechts teilen",
       "splitDown": "Unten teilen"
     },
