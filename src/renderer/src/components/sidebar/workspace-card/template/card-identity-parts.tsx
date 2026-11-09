@@ -1,4 +1,5 @@
 import React from 'react'
+import { WorkspaceNewChatButton } from '../activity/WorkspaceNewChatButton'
 import { DetachedHeadBadge } from '@/components/DetachedHeadBadge'
 import { useWslHostDistro, WslHostMark } from '@/components/wsl-host-mark/WslHostMark'
 import { getWorktreeExecutionHostId } from '../../../../../../shared/execution-host'
@@ -90,6 +91,12 @@ function sidebarLabel(text: string, tooltip: unknown): React.ReactNode {
 }
 
 export const CARD_IDENTITY_PARTS = {
+  NewChatAction: part([], (_props, _children, card) => (
+    <WorkspaceNewChatButton
+      worktreeId={card.worktree.id}
+      disabled={card.isDeleting || card.titleRenaming || card.isRuntimeDisconnected}
+    />
+  )),
   Title: part(['dimWhenRead', 'tooltip'], (props, _children, card) => title(props, card)),
   RepoChip: part([], (_props, _children, { repo }) =>
     repo ? <WorktreeCardRepoChip repo={repo} /> : null

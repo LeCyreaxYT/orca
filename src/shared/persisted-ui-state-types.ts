@@ -1,4 +1,5 @@
 import type { GitHistoryRefs } from './git/history/git-history-types'
+import type { SidebarChatGroupsByWorktree } from './sidebar-chat-groups'
 import type { JiraQuickFilterState } from './jira/jira-quick-filters'
 import type { BrowserDevToolsDockLayout } from './browser/devtools/browser-devtools-dock'
 import type { JiraSavedFilterState } from './jira/jira-saved-filters'
@@ -114,6 +115,7 @@ export type PersistedUIState = {
   _worktreeCardModeDefaulted?: boolean
   showAgentModels?: boolean
   agentActivityDisplayMode?: AgentActivityDisplayMode
+  sidebarChatGroupsByWorktree?: SidebarChatGroupsByWorktree
   workspaceStatuses?: WorkspaceStatusDefinition[]
   workspaceBoardOpacity?: number
   workspaceBoardColumnWidth?: number

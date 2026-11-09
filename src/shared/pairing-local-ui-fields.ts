@@ -13,6 +13,7 @@ export const PAIRING_LOCAL_UI_FIELDS = [
   'sidebarOpen',
   // Sidebar model badges are a client display choice; older hosts reject the new key.
   'showAgentModels',
+  'sidebarChatGroupsByWorktree',
   // Agent View filters and presentation belong to each client's host catalog and viewport.
   'agentsVisibleHostIds',
   'agentsFilterRepoIds',

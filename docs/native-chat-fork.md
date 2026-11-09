@@ -1,6 +1,18 @@
-# Native conversation refresh and sidebar drop
+# Native chat groups and conversation refresh
 
 This fork extends Orca's existing chats for Codex and Claude. It does not require a plugin or a separate chat interface.
+
+## Chat groups
+
+Use the sidebar's **Full list** agent-activity layout to show chat groups in each workspace.
+
+- Click **+** beside the workspace or a chat group, then choose a provider. Orca opens its normal native chat in that workspace.
+- Use **New group** to create a group. Its **…** menu renames or removes it; removing a group returns its chats to **General**.
+- Drag a main chat onto another group's heading, or use the chat's **…** menu to move or pin it. Subagents stay under their main chat and move with it.
+- Long groups initially show recent chats, the selected chat, and active work. **Show all chats** reveals the rest. A collapsed group still signals ongoing work or attention.
+- Group membership, names and collapsed state are saved in the current profile for each workspace. The right-hand chat view and Orca's orchestration remain native.
+
+## Conversation history
 
 - Open a native Codex or Claude chat and click **Reload conversation history** in its upper-right toolbar. In German this is **Chatverlauf neu laden**.
 - Continue the same conversation in the original application, then reload it in Orca to see the newly saved entries. Reload is manual; it does not send a prompt or start an agent.

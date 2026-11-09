@@ -1,4 +1,5 @@
 import { normalizeGitGraphFilters } from '../../../shared/git/history/git-graph-filters'
+import { normalizeSidebarChatGroups } from '../../../shared/sidebar-chat-groups'
 import { normalizeExplorerDisplayRootByWorktree } from '../../../shared/file-listing/file-explorer-display-root'
 import type { PersistedState } from '../../../shared/persisted-state-types'
 import {
@@ -79,6 +80,11 @@ export function updatePersistedUI(
   const currentUI = {
     ...getDefaultUIState(),
     ...stripMainOwnedTelemetryMarkerFromUI(operations.state.ui)
+  }
+  if (sanitizedUpdates.sidebarChatGroupsByWorktree !== undefined) {
+    sanitizedUpdates.sidebarChatGroupsByWorktree = normalizeSidebarChatGroups(
+      sanitizedUpdates.sidebarChatGroupsByWorktree
+    )
   }
   const previousUI = {
     ...operations.getUI(),

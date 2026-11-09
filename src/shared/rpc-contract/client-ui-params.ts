@@ -1,4 +1,5 @@
 import { GitHistoryRefName } from './git-params'
+import { SidebarChatGroupsParam } from '../sidebar-chat-groups'
 import { z } from 'zod'
 import { isFeatureTipSeenId } from '../feature-tips'
 import {
@@ -182,6 +183,7 @@ export const UiUpdateFields = z
     _worktreeCardModeDefaulted: z.boolean().optional(),
     showAgentModels: z.boolean().optional(),
     agentActivityDisplayMode: AgentActivityDisplayMode.optional(),
+    sidebarChatGroupsByWorktree: SidebarChatGroupsParam.optional(),
     workspaceStatuses: z.array(WorkspaceStatusDefinition).optional(),
     workspaceBoardOpacity: z.number().finite().optional(),
     workspaceBoardColumnWidth: z.number().finite().optional(),

@@ -91,6 +91,7 @@ function getCompactAgentTime(agent: DashboardAgentRowData, now: number): string 
 }
 
 type CompactAgentRowProps = {
+  titleOnly?: boolean
   showModel?: boolean
   agent: DashboardAgentRowData
   now: number
@@ -113,6 +114,7 @@ type CompactAgentRowProps = {
 
 export const CompactAgentRow = React.memo(function CompactAgentRow({
   agent,
+  titleOnly = false,
   showModel = true,
   now,
   parentConversationDescription,
@@ -158,18 +160,16 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
   const held = heldMessageRef.current
   const stableMessage =
     turnHoldable && !currentMessage && held?.turn === turn ? held.message : undefined
-  const secondary = getCompactAgentSecondary(agent, now, stableMessage, presentation, t)
-  const { leadingText, trailingText } = getCompactAgentLineOrder(
-    agent,
-    dotState,
-    primary,
-    secondary,
-    t
-  )
+  const secondary = titleOnly
+    ? ''
+    : getCompactAgentSecondary(agent, now, stableMessage, presentation, t)
+  const { leadingText, trailingText } = titleOnly
+    ? { leadingText: primary, trailingText: null }
+    : getCompactAgentLineOrder(agent, dotState, primary, secondary, t)
   const rowTitle = `${leadingText}${trailingText ? ` - ${trailingText}` : ''}`
   const model = agent.entry.model?.trim() ?? ''
   const shortTime = getCompactAgentTime(agent, now)
-  const cacheTimer = usePromptCacheCountdownForPane(agent.paneKey, cacheTimerActive)
+  const cacheTimer = usePromptCacheCountdownForPane(agent.paneKey, !titleOnly && cacheTimerActive)
 
   const handleActivate = useCallback(
     (e: React.MouseEvent) => {
@@ -200,16 +200,17 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
     },
     [agent.paneKey, onSendTargetClick, sendTargetStatus]
   )
-  const timestamp = shortTime ? (
-    <span
-      className={cn(
-        'shrink-0 text-[10px] tabular-nums',
-        highlighted ? 'text-foreground/70' : 'text-muted-foreground/60'
-      )}
-    >
-      {shortTime}
-    </span>
-  ) : null
+  const timestamp =
+    !titleOnly && shortTime ? (
+      <span
+        className={cn(
+          'shrink-0 text-[10px] tabular-nums',
+          highlighted ? 'text-foreground/70' : 'text-muted-foreground/60'
+        )}
+      >
+        {shortTime}
+      </span>
+    ) : null
 
   // Focused fills wash out muted text; brighten the lead while preserving unread emphasis.
   const leadClassName = cn(
@@ -260,7 +261,7 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
           </span>
         </>
       )}
-      {showModel && model && (
+      {!titleOnly && showModel && model && (
         <span
           className={cn(
             'min-w-0 max-w-24 truncate font-mono text-3xs',
@@ -284,7 +285,9 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
           +{childAgentCount}
         </span>
       )}
-      {cacheTimer && <CacheTimer startedAt={cacheTimer.startedAt} ttlMs={cacheTimer.ttlMs} />}
+      {!titleOnly && cacheTimer && (
+        <CacheTimer startedAt={cacheTimer.startedAt} ttlMs={cacheTimer.ttlMs} />
+      )}
       {hasChildDisclosure ? (
         <DashboardAgentChildDisclosure
           childAgentCount={childAgentCount}
@@ -301,12 +304,14 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
   return (
     <div
       draggable={false}
+      data-sidebar-chat-row={titleOnly ? agent.paneKey : undefined}
       className={cn(
         'compact-agent-row agent-disclosure-row group/compact-agent-row min-w-0 cursor-pointer rounded-sm px-1 text-[11px] leading-none',
         'text-muted-foreground worktree-agent-row-hover',
         hasChildDisclosure && 'worktree-agent-lineage-parent-row',
         isLineageChild && 'worktree-agent-lineage-child-row',
         'flex h-6 items-center gap-1',
+        titleOnly && 'h-8 rounded-md px-1.5 text-[13px]',
         highlighted && 'bg-worktree-sidebar-accent',
         sendTargetStatus === 'sending' && 'cursor-progress opacity-75',
         sendTargetStatus === 'disabled' && 'cursor-default opacity-60'
@@ -315,13 +320,22 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
       onClick={handleActivate}
       onMouseDown={(e) => e.stopPropagation()}
       onPointerDown={(e) => e.stopPropagation()}
-      onDragStart={(e) => e.stopPropagation()}
+      onDragStart={(event) => event.stopPropagation()}
+      tabIndex={titleOnly ? 0 : undefined}
+      onKeyDown={(event) => {
+        if (titleOnly && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault()
+          event.stopPropagation()
+          onActivate(agent.tab.id, agent.activationPaneKey ?? agent.paneKey)
+          void viewClaudeAgentFromRow(agent)
+        }
+      }}
       data-focused-agent-pane={highlighted ? 'true' : undefined}
       data-current={view?.current ? 'true' : undefined}
       aria-current={view?.current ? 'true' : undefined}
       aria-description={parentConversationDescription}
       data-agent-send-target={sendTargetStatus}
-      role={agent.lineage ? 'treeitem' : undefined}
+      role={agent.lineage ? 'treeitem' : titleOnly ? 'button' : undefined}
       aria-level={agent.lineage ? agent.lineage.depth + 1 : undefined}
       aria-expanded={hasChildDisclosure ? childAgentsExpanded : undefined}
       title={sendTargetDisabledReason}

@@ -42,6 +42,13 @@ describe('web UI preload API pairing-local fields', () => {
     workspaceHostOrder: ['runtime:web-env-1', 'local'],
     sidebarOpen: false,
     showAgentModels: false,
+    sidebarChatGroupsByWorktree: {
+      'browser-workspace': {
+        groups: [{ id: 'support', name: 'Support' }],
+        assignments: { 'tab:leaf': 'support' },
+        collapsed: []
+      }
+    },
     agentsVisibleHostIds: ['runtime:web-env-1'],
     agentsFilterRepoIds: ['repo-b'],
     agentsHideWorkspacesFromOtherDevices: true,
@@ -62,6 +69,9 @@ describe('web UI preload API pairing-local fields', () => {
     workspaceHostOrder: ['local', 'ssh:box'],
     sidebarOpen: true,
     showAgentModels: true,
+    sidebarChatGroupsByWorktree: {
+      'host-workspace': { groups: [], assignments: {}, collapsed: ['pinned'] }
+    },
     agentsVisibleHostIds: ['local'],
     agentsFilterRepoIds: ['repo-a'],
     agentsHideWorkspacesFromOtherDevices: false,

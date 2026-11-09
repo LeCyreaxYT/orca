@@ -2,6 +2,7 @@ import type { PersistedUIState } from '../../../../../shared/persisted-ui-state-
 
 /** Capture hydrated baseline and persist only locally changed fields: shared desktop/web/mobile UI snapshots otherwise overwrite peers’ disjoint updates (STA-5781). */
 export type PersistedUIWriteBaseline = {
+  sidebarChatGroupsByWorktree?: PersistedUIState['sidebarChatGroupsByWorktree']
   gitGraphFiltersByWorktree?: PersistedUIState['gitGraphFiltersByWorktree']
   sidebarWidth: number
   sidebarOpen: boolean
@@ -33,6 +34,7 @@ export type PersistedUIWriteBaseline = {
 
 // Require exhaustive Record coverage; keyof arrays validate members but silently omit new fields, losing persistence (ui-state-schema-parity.ts).
 const PERSISTED_UI_WRITE_BASELINE_FIELD_SET = {
+  sidebarChatGroupsByWorktree: true,
   gitGraphFiltersByWorktree: true,
   sidebarWidth: true,
   sidebarOpen: true,

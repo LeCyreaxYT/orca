@@ -93,6 +93,7 @@ export function mergeHostWebUIState(
     workspaceHostOrder: local.workspaceHostOrder,
     sidebarOpen: local.sidebarOpen,
     showAgentModels: local.showAgentModels !== false,
+    sidebarChatGroupsByWorktree: local.sidebarChatGroupsByWorktree,
     agentsVisibleHostIds: local.agentsVisibleHostIds,
     agentsFilterRepoIds: local.agentsFilterRepoIds,
     agentsHideWorkspacesFromOtherDevices: local.agentsHideWorkspacesFromOtherDevices === true,

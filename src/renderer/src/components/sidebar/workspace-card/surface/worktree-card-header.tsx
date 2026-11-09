@@ -1,4 +1,5 @@
 import React from 'react'
+import { WorkspaceNewChatButton } from '../activity/WorkspaceNewChatButton'
 
 import { shouldBeginWorktreeRename } from '../controller/worktree-card-model'
 import type { WorktreeCardPresentation } from './worktree-card-presentation'
@@ -127,8 +128,14 @@ export function WorktreeCardHeader({
         {showTitleRowIndicators && titleRowIndicators}
       </div>
 
-      {showHeaderActions && (
+      {(showHeaderActions || !affiliateListMode) && (
         <div className="ml-auto flex shrink-0 items-center justify-center gap-1 pr-1.5">
+          {!affiliateListMode && (
+            <WorkspaceNewChatButton
+              worktreeId={worktree.id}
+              disabled={isDeleting || titleRenaming || isRuntimeDisconnected}
+            />
+          )}
           {showTitleRowPrimary && <WorktreeCardPrimaryStar />}
 
           {showDeleteQuickAction && (

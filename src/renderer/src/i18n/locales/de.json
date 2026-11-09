@@ -226,6 +226,25 @@
       "existingTitle": "Auf dem {{distro}}-Host hinzufügen (empfohlen)",
       "existingWhy": "{{distro}} läuft bereits als Host, daher laufen Git, Dateien und Terminals nativ in Linux statt über die Windows-Dateifreigabe.",
       "existingAccept": "Auf Host hinzufügen"
+    },
+    "chatGroups": {
+      "newChat": "Neuer Chat",
+      "loading": "Chats werden geladen…",
+      "unavailable": "Nicht verfügbar",
+      "noProviders": "Keine Chat-Anbieter verfügbar",
+      "groupName": "Gruppenname",
+      "save": "Gruppe speichern",
+      "add": "Neue Gruppe",
+      "move": "Chat verschieben",
+      "pin": "Chat anheften",
+      "unpin": "Chat lösen",
+      "rename": "Gruppe umbenennen",
+      "options": "Gruppenoptionen",
+      "remove": "Gruppe entfernen",
+      "pinned": "Angeheftet",
+      "general": "Allgemein",
+      "less": "Weniger anzeigen",
+      "all": "Alle {{count}} Chats anzeigen"
     }
   },
   "app": {

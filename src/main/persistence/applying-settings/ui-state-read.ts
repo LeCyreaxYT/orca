@@ -1,4 +1,5 @@
 import { normalizeGitGraphFilters } from '../../../shared/git/history/git-graph-filters'
+import { normalizeSidebarChatGroups } from '../../../shared/sidebar-chat-groups'
 import { normalizeExplorerDisplayRootByWorktree } from '../../../shared/file-listing/file-explorer-display-root'
 import type { PersistedState } from '../../../shared/persisted-state-types'
 import {
@@ -53,6 +54,7 @@ export function getPersistedUI(
     worktreeCardProperties: normalizeWorktreeCardProperties(state.ui?.worktreeCardProperties),
     showAgentModels: state.ui?.showAgentModels !== false,
     agentActivityDisplayMode: normalizeAgentActivityDisplayMode(state.ui?.agentActivityDisplayMode),
+    sidebarChatGroupsByWorktree: normalizeSidebarChatGroups(state.ui?.sidebarChatGroupsByWorktree),
     workspaceStatuses: normalizeWorkspaceStatuses(state.ui?.workspaceStatuses),
     workspaceBoardOpacity: clampWorkspaceBoardOpacity(state.ui?.workspaceBoardOpacity),
     workspaceBoardColumnWidth: clampWorkspaceBoardColumnWidth(state.ui?.workspaceBoardColumnWidth),

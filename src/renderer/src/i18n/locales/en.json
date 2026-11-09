@@ -229,6 +229,25 @@
       "existingTitle": "Add on the {{distro}} host (recommended)",
       "existingWhy": "{{distro}} already runs as a host, so Git, files and terminals run natively in Linux instead of across the Windows file share.",
       "existingAccept": "Add on host"
+    },
+    "chatGroups": {
+      "newChat": "New chat",
+      "loading": "Loading chats…",
+      "unavailable": "Unavailable",
+      "noProviders": "No chat providers available",
+      "groupName": "Group name",
+      "save": "Save group",
+      "add": "New group",
+      "move": "Move chat",
+      "pin": "Pin chat",
+      "unpin": "Unpin chat",
+      "rename": "Rename group",
+      "options": "Group options",
+      "remove": "Remove group",
+      "pinned": "Pinned",
+      "general": "General",
+      "less": "Show less",
+      "all": "Show all {{count}} chats"
     }
   },
   "app": {

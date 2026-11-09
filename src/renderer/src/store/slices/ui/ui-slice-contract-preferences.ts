@@ -1,4 +1,8 @@
 import type { PersistedUIState } from '../../../../../shared/persisted-ui-state-types'
+import type {
+  SidebarChatGroupEdit,
+  SidebarChatGroupsByWorktree
+} from '../../../../../shared/sidebar-chat-groups'
 import type { BrowserDevToolsDockLayout } from '../../../../../shared/browser/devtools/browser-devtools-dock'
 import type {
   ActivityGroupBy,
@@ -101,6 +105,8 @@ export type UISlicePreferences = {
   showAgentModels: boolean
   setShowAgentModels: (show: boolean) => void
   agentActivityDisplayMode: AgentActivityDisplayMode
+  sidebarChatGroupsByWorktree: SidebarChatGroupsByWorktree
+  editSidebarChatGroup: (worktreeId: string, edit: SidebarChatGroupEdit) => void
   setAgentActivityDisplayMode: (mode: AgentActivityDisplayMode) => void
   workspaceStatuses: WorkspaceStatusDefinition[]
   setWorkspaceStatuses: (statuses: WorkspaceStatusDefinition[]) => void
