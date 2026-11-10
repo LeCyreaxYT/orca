@@ -1,4 +1,5 @@
 import { net } from 'electron'
+import { UPDATE_RELEASE_REPO } from '../../../shared/release-channel'
 import { compareVersions, isPrereleaseVersion, isValidVersion } from './updater-fallback'
 import {
   FETCH_TIMEOUT_MS,
@@ -12,12 +13,12 @@ import {
   type ReleaseDelayResult
 } from './updater-release-delay'
 
-const ATOM_FEED_URL = 'https://github.com/stablyai/orca/releases.atom'
+const ATOM_FEED_URL = `https://github.com/${UPDATE_RELEASE_REPO}/releases.atom`
 const MAX_MANIFEST_PROBE_CANDIDATES = 6
 
 // Atom includes stable and prerelease tags without channel filtering.
 const ENTRY_RE = /<entry>([\s\S]*?)<\/entry>/g
-const TAG_HREF_RE = /href="https:\/\/github\.com\/stablyai\/orca\/releases\/tag\/([^"]+)"/
+const TAG_HREF_RE = /href="https:\/\/github\.com\/([^/]+\/[^/]+)\/releases\/tag\/([^"]+)"/g
 const ENTRY_UPDATED_RE = /<updated>([^<]+)<\/updated>/
 
 export function normalizeTagToVersion(tag: string): string {
@@ -48,7 +49,10 @@ async function fetchReleaseFeedTags(): Promise<ReleaseFeedTag[] | null> {
     const tags: ReleaseFeedTag[] = []
 
     for (const entry of body.matchAll(ENTRY_RE)) {
-      const tag = entry[1].match(TAG_HREF_RE)?.[1]
+      const tagMatch = [...entry[1].matchAll(TAG_HREF_RE)].find(
+        (match) => match[1].toLowerCase() === UPDATE_RELEASE_REPO.toLowerCase()
+      )
+      const tag = tagMatch?.[2]
       if (!tag) {
         continue
       }
@@ -69,17 +73,21 @@ async function fetchReleaseFeedTags(): Promise<ReleaseFeedTag[] | null> {
 export async function fetchLatestStableReleaseTag(): Promise<string | null> {
   try {
     // Resolve only the release-page redirect; installer redirects continue on to signed storage URLs.
-    const latestUrl = 'https://github.com/stablyai/orca/releases/latest'
+    const latestUrl = `https://github.com/${UPDATE_RELEASE_REPO}/releases/latest`
     const response = await requestGitHubReleaseHead(latestUrl)
     if (!response?.redirectUrl || response.statusCode < 300 || response.statusCode >= 400) {
       return null
     }
     const target = new URL(response.redirectUrl, latestUrl)
-    const match = target.pathname.match(/^\/stablyai\/orca\/releases\/tag\/([^/]+)$/)
-    if (target.origin !== 'https://github.com' || !match) {
+    const match = target.pathname.match(/^\/([^/]+\/[^/]+)\/releases\/tag\/([^/]+)$/)
+    if (
+      target.origin !== 'https://github.com' ||
+      !match ||
+      match[1].toLowerCase() !== UPDATE_RELEASE_REPO.toLowerCase()
+    ) {
       return null
     }
-    const tag = decodeURIComponent(match[1])
+    const tag = decodeURIComponent(match[2])
     const version = normalizeTagToVersion(tag)
     if (!isValidVersion(version) || isPrereleaseVersion(version)) {
       return null

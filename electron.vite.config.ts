@@ -20,6 +20,7 @@ import { createPlainNodeEntryGuardPlugin } from './config/build-plugins/plain-no
 import { createDevServeConfig } from './config/build-plugins/dev-serve-config'
 import { reactPluginOptions } from './config/build-plugins/react-compiler'
 import { resolveBuildSourceCommit } from './config/scripts/build-identity/build-source-commit.mjs'
+import { resolveBuildUpdateRepository } from './config/scripts/build-identity/build-update-repository.mjs'
 
 const BUNDLED_MAIN_DEPENDENCIES = new Set([
   'stream-json',
@@ -78,6 +79,7 @@ function createDarkBuildMarkerPlugin(): Plugin {
 
 // Pin official skill installs to the bundled commit on every channel; main installs, renderer prints the command.
 const ORCA_BUILD_COMMIT_LITERAL = JSON.stringify(resolveBuildSourceCommit())
+const ORCA_UPDATE_REPOSITORY_LITERAL = JSON.stringify(resolveBuildUpdateRepository())
 
 function createStartupDiagnosticsBanner(chunkName: string): string {
   return `
@@ -252,6 +254,7 @@ export const electronViteConfig: UserConfig = {
       ORCA_POSTHOG_WRITE_KEY: ORCA_POSTHOG_WRITE_KEY_LITERAL,
       ORCA_DIAGNOSTICS_TOKEN_URL: ORCA_DIAGNOSTICS_TOKEN_URL_LITERAL,
       ORCA_BUILD_COMMIT: ORCA_BUILD_COMMIT_LITERAL,
+      ORCA_UPDATE_REPOSITORY: ORCA_UPDATE_REPOSITORY_LITERAL,
       ...DARK_BUILD_DEFINES
     },
     // @xterm/headless declares exports:null; point Vite directly at its published CJS main to permit inlining.
@@ -275,6 +278,7 @@ export const electronViteConfig: UserConfig = {
     cacheDir: resolve('.cache/vite/renderer'),
     define: {
       ORCA_BUILD_COMMIT: ORCA_BUILD_COMMIT_LITERAL,
+      ORCA_UPDATE_REPOSITORY: ORCA_UPDATE_REPOSITORY_LITERAL,
       ...DARK_BUILD_DEFINES
     },
     resolve: {

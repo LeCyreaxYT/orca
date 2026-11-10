@@ -54,6 +54,7 @@ jobs:
           src/main/trello/trello-service.test.ts
           src/main/trello/trello-connection.test.ts
           src/main/trello/trello-read.test.ts
+          src/main/updater/releases/updater-fork-feed.test.ts
           src/main/runtime/rpc/methods/integrations/trello.test.ts
           src/renderer/src/components/native-chat/tools/lines/NativeChatToolOutput.test.tsx
           src/renderer/src/components/native-chat/tools/diffs/native-chat-turn-diffs.test.ts
