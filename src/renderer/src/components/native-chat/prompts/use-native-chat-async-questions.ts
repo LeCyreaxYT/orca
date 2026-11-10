@@ -7,7 +7,6 @@ import type { NativeChatMessage } from '../../../../../shared/native-chat/native
 import { nativeChatPromptDismissals as dismissals } from './native-chat-prompt-dismissals'
 
 export function useNativeChatAsyncQuestions({
-  paneKey,
   sourceKey,
   sourceScope,
   viewKey,
@@ -24,7 +23,7 @@ export function useNativeChatAsyncQuestions({
   /** Texts waiting in the chat's queue; one quoting a question holds it as answered. */
   queuedTexts?: readonly string[]
 }) {
-  const scopeKey = `${paneKey}:async:${sourceKey}`
+  const scopeKey = `async:${sourceKey}`
   const owner = useMemo(() => ({ scopeKey, viewKey }), [scopeKey, viewKey])
   const active = useRef<object | null>(null)
   useLayoutEffect(() => {
@@ -33,7 +32,6 @@ export function useNativeChatAsyncQuestions({
       active.current = null
     }
   }, [owner])
-  useLayoutEffect(() => () => dismissals.forgetAsync(scopeKey), [scopeKey])
   const hidden = useSyncExternalStore(dismissals.subscribe, () => dismissals.readAsync(scopeKey))
   const scan = useMemo(() => (settled ? scanPendingAsks(messages) : null), [messages, settled])
   const prompt = useMemo(

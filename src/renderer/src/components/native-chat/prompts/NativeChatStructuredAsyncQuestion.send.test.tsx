@@ -59,6 +59,32 @@ const pendingAnswer: AgentJournalSubmission = {
 }
 
 describe('async question send ownership', () => {
+  it('keeps a closed question hidden after leaving and reopening the chat', () => {
+    const question = (sourceKey = 'host/session/epoch', messages = [asked]) => (
+      <NativeChatStructuredAsyncQuestion
+        paneKey="scope"
+        sourceKey={sourceKey}
+        sourceScope={sourceKey}
+        session={{ messages, readPhase: 'ready' }}
+        send={() => true}
+      />
+    )
+    act(() => root.render(question()))
+    act(() =>
+      container
+        .querySelector<HTMLButtonElement>('button[aria-label="Cancel"]')!
+        .dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    )
+    expect(container.textContent).not.toContain('Which color?')
+    act(() => root.render(null))
+    act(() => root.render(question()))
+    expect(container.textContent).not.toContain('Which color?')
+    act(() => root.render(question('other-host/session/epoch')))
+    expect(container.textContent).toContain('Which color?')
+    act(() => root.render(question('host/session/epoch', [{ ...asked, id: 'new-question' }])))
+    expect(container.textContent).toContain('Which color?')
+  })
+
   it('releases journal-first uncertainty before a late callback, fences retries and resets ownership on revised forms and sources', () => {
     const completions: (() => void)[] = []
     const send = vi.fn<NativeChatStructuredComposerTransport['send']>((_text, _images, request) => {

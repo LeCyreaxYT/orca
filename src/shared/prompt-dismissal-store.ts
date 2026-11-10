@@ -15,8 +15,24 @@ export type PromptDismissalStore<T> = {
 
 const EMPTY_HIDDEN_IDS: ReadonlySet<string> = new Set()
 
-export function createPromptDismissalStore<T>(): PromptDismissalStore<T> {
+export type AsyncPromptDismissalStorage = {
+  read: () => readonly [string, readonly string[]][]
+  write: (entries: readonly [string, readonly string[]][]) => void
+}
+
+export function createPromptDismissalStore<T>(
+  storage?: AsyncPromptDismissalStorage
+): PromptDismissalStore<T> {
   const dismissals = new Map<string, { prompt?: T; hidden?: ReadonlySet<string> }>()
+  for (const [key, ids] of storage?.read() ?? []) {
+    setBoundedScopeCacheEntry(dismissals, key, { hidden: new Set(ids) })
+  }
+  const persist = () =>
+    storage?.write(
+      [...dismissals].flatMap<[string, string[]]>(([key, entry]) =>
+        entry.hidden ? [[key, [...entry.hidden]]] : []
+      )
+    )
   const listeners = new Set<() => void>()
   const notify = (): void => {
     for (const listener of listeners) {
@@ -55,6 +71,7 @@ export function createPromptDismissalStore<T>(): PromptDismissalStore<T> {
         dismissals.delete(scopeKey)
       }
       if (stale.length > 0) {
+        persist()
         notify()
       }
     },
@@ -69,6 +86,7 @@ export function createPromptDismissalStore<T>(): PromptDismissalStore<T> {
         return
       }
       setBoundedScopeCacheEntry(dismissals, scopeKey, { ...entry, hidden })
+      persist()
       notify()
     },
     forgetAsync: (scopeKey) => {
@@ -81,8 +99,12 @@ export function createPromptDismissalStore<T>(): PromptDismissalStore<T> {
       } else {
         dismissals.delete(scopeKey)
       }
+      persist()
       notify()
     },
-    clearForTests: () => dismissals.clear()
+    clearForTests: () => {
+      dismissals.clear()
+      persist()
+    }
   }
 }
