@@ -35,7 +35,21 @@ function fakeCloud(options: { beforeToken?: () => Promise<void> } = {}) {
     if (url.pathname.includes('oauth-protected-resource')) {
       return json({
         resource: 'https://mcp.trello.com/v1',
-        authorization_servers: ['https://auth.atlassian.com']
+        authorization_servers: ['https://auth.atlassian.com'],
+        scopes_supported: [
+          'offline_access',
+          'read:me',
+          'read:account',
+          'read:board:trello',
+          'write:board:trello',
+          'read:organization:trello',
+          'write:organization:trello',
+          'read:member:trello',
+          'read:member.inbox:trello',
+          'write:member.inbox:trello',
+          'read:member.planner:trello',
+          'write:member.planner:trello'
+        ]
       })
     }
     if (url.pathname.includes('oauth-authorization-server')) {
@@ -113,6 +127,9 @@ describe('Orca Trello OAuth lifecycle', () => {
     try {
       const { authorizationUrl } = await connection.beginAuthorization()
       const authorization = new URL(authorizationUrl)
+      expect(authorization.searchParams.get('scope')).toBe(
+        'offline_access read:me read:account read:board:trello write:board:trello read:organization:trello write:organization:trello read:member:trello read:member.inbox:trello write:member.inbox:trello read:member.planner:trello write:member.planner:trello'
+      )
       const callback = new URL(authorization.searchParams.get('redirect_uri')!)
       callback.searchParams.set('state', authorization.searchParams.get('state')!)
       callback.searchParams.set('code', 'accepted-code')

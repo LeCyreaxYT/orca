@@ -3,11 +3,10 @@ import type { OAuthClientProvider } from '@modelcontextprotocol/sdk/client/auth.
 import type { TrelloAuthorization } from './trello-authorization-store'
 
 export const TRELLO_MCP_URL = new URL('https://mcp.trello.com/v1')
+// Atlassian consent rejects partial scope groups; discover them from the server.
 export const TRELLO_AUTH_OPTIONS = {
   serverUrl: TRELLO_MCP_URL,
   resourceMetadataUrl: new URL('https://mcp.trello.com/.well-known/oauth-protected-resource/v1'),
-  scope:
-    'offline_access read:me read:account read:board:trello write:board:trello read:organization:trello read:member:trello',
   fetchFn: (input: string | URL | Request, init?: RequestInit) =>
     fetch(input, {
       ...init,
