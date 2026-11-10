@@ -22,6 +22,7 @@ type OpenCodePromptFailureRequest = OpenCodePromptFailureQuery & {
 }
 
 export type ForeignSqliteReaderRequest =
+  | { id: number; kind: 'codexSidebar'; dbPath: string }
   | CursorProfileRequest
   | OpenCodeBinderSessionsRequest
   | OpenCodePromptFailureRequest

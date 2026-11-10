@@ -81,21 +81,42 @@ export function SidebarChatDraggable({
   children: ReactNode
 }) {
   const title = useAgentRowConversationName(agent) ?? getAgentRowPrimaryText(agent.entry)
+  return (
+    <SidebarChatDraggableRow id={sidebarChatIdentity(agent)} title={title} rowKey={agent.paneKey}>
+      {children}
+    </SidebarChatDraggableRow>
+  )
+}
+
+export function SidebarChatDraggableRow({
+  id,
+  title,
+  rowKey = id,
+  children
+}: {
+  id: string
+  title: string
+  rowKey?: string
+  children: ReactNode
+}) {
   const { setNodeRef, listeners, isDragging } = useDraggable({
-    id: sidebarChatIdentity(agent),
+    id,
     data: { label: title }
   })
   return (
     <div
       ref={setNodeRef}
-      className={cn('group/chat-row flex min-w-0 items-start gap-0.5', isDragging && 'opacity-50')}
+      className={cn(
+        'group/chat-row relative flex min-w-0 items-start gap-0.5',
+        isDragging && 'opacity-50'
+      )}
       onPointerDownCapture={(event) => {
         if (
           event.target instanceof Element &&
           (event.target.closest('button, input, textarea, select') ||
             event.target
               .closest('[data-sidebar-chat-row]')
-              ?.getAttribute('data-sidebar-chat-row') !== agent.paneKey)
+              ?.getAttribute('data-sidebar-chat-row') !== rowKey)
         ) {
           return
         }

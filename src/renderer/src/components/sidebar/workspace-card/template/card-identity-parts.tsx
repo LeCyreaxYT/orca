@@ -1,5 +1,7 @@
 import React from 'react'
 import { WorkspaceNewChatButton } from '../activity/WorkspaceNewChatButton'
+import { WorkspaceChatDisclosure } from '../activity/WorkspaceChatDisclosure'
+import { SidebarChatAddGroup } from '../activity/SidebarChatGroupControls'
 import { DetachedHeadBadge } from '@/components/DetachedHeadBadge'
 import { useWslHostDistro, WslHostMark } from '@/components/wsl-host-mark/WslHostMark'
 import { getWorktreeExecutionHostId } from '../../../../../../shared/execution-host'
@@ -91,11 +93,21 @@ function sidebarLabel(text: string, tooltip: unknown): React.ReactNode {
 }
 
 export const CARD_IDENTITY_PARTS = {
+  ChatDisclosure: part([], (_props, _children, card) => (
+    <WorkspaceChatDisclosure worktreeId={card.worktree.id} name={card.visibleCardTitle} />
+  )),
   NewChatAction: part([], (_props, _children, card) => (
-    <WorkspaceNewChatButton
-      worktreeId={card.worktree.id}
-      disabled={card.isDeleting || card.titleRenaming || card.isRuntimeDisconnected}
-    />
+    <div className="flex items-center">
+      {card.agentActivityDisplayMode === 'full' ? (
+        <div className="opacity-0 group-hover/worktree-card:opacity-100 focus-within:opacity-100 has-[[data-state=open]]:opacity-100">
+          <SidebarChatAddGroup worktreeId={card.worktree.id} iconOnly />
+        </div>
+      ) : null}
+      <WorkspaceNewChatButton
+        worktreeId={card.worktree.id}
+        disabled={card.isDeleting || card.titleRenaming || card.isRuntimeDisconnected}
+      />
+    </div>
   )),
   Title: part(['dimWhenRead', 'tooltip'], (props, _children, card) => title(props, card)),
   RepoChip: part([], (_props, _children, { repo }) =>

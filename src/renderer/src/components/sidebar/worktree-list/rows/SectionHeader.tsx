@@ -318,6 +318,23 @@ export function renderWorktreeSectionHeaderRow(
                 'cursor-grab active:cursor-grabbing'
             )}
           >
+            {showHeaderCollapseAffordance ? (
+              <div
+                className="flex size-5 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent/70 hover:text-foreground"
+                data-repo-header-collapse-affordance=""
+                aria-hidden
+                onPointerDown={handleRepoHeaderCollapseAffordancePointerDown}
+                onClick={(event) => {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  toggleHeader(event)
+                }}
+              >
+                <ChevronDown
+                  className={cn('size-3.5 transition-transform', isHeaderCollapsed && '-rotate-90')}
+                />
+              </div>
+            ) : null}
             <div
               className={cn(
                 'flex size-4 shrink-0 items-center justify-center rounded-[4px]',
@@ -348,24 +365,6 @@ export function renderWorktreeSectionHeaderRow(
           </div>
 
           <ProjectHeaderActions>
-            {showHeaderCollapseAffordance ? (
-              <div
-                className="flex size-5 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent/70 hover:text-foreground"
-                data-repo-header-collapse-affordance=""
-                aria-hidden
-                onPointerDown={handleRepoHeaderCollapseAffordancePointerDown}
-                onClick={(event) => {
-                  event.preventDefault()
-                  event.stopPropagation()
-                  toggleHeader(event)
-                }}
-              >
-                <ChevronDown
-                  className={cn('size-3.5 transition-transform', isHeaderCollapsed && '-rotate-90')}
-                />
-              </div>
-            ) : null}
-
             {isProjectGroupHeader && !row.repo && projectGroupIdForHeader ? (
               <ProjectGroupHeaderMenu
                 groupId={projectGroupIdForHeader}

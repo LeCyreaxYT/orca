@@ -1621,6 +1621,27 @@ html.native-shell .app-layout {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--sidebar-ring) 18%, transparent);
 }
 
+[data-worktree-card-surface][data-chat-navigation],
+.dark [data-worktree-card-surface][data-chat-navigation] {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+[data-sidebar-workspace-header] {
+  min-height: 2rem;
+  padding-inline: 0.25rem;
+  border-radius: var(--radius-md);
+}
+
+[data-sidebar-workspace-header]:hover {
+  background: var(--worktree-sidebar-accent);
+}
+
+[data-chat-navigation][data-worktree-card-selected] [data-sidebar-workspace-header] {
+  outline: 1px solid var(--worktree-sidebar-ring);
+}
+
 /* #19624: mix text tokens toward sidebar in oklab for theme-stable perceptual dimming; preserve unread amber at full brightness. */
 [data-worktree-sleeping-dim] {
   color: color-mix(in oklab, var(--worktree-sidebar-foreground) 52%, var(--worktree-sidebar));
@@ -1865,6 +1886,12 @@ html.native-shell .app-layout {
 
 .dark .worktree-agent-lineage-children {
   border-left-color: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+@container sidebar (width < 16rem) {
+  [data-chat-navigation] .worktree-agent-lineage-children {
+    margin-left: 0.25rem;
+  }
 }
 
 .worktree-agent-send-target-button {

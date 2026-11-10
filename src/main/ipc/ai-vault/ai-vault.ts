@@ -65,6 +65,7 @@ import {
 } from '../../ai-vault/structured-session-ownership'
 import { allHostsRuntimeScanTimeoutMs } from './ai-vault-all-host-timeouts'
 import { registerAiVaultScanProgressBroadcast } from './ai-vault-scan-progress-broadcast'
+import { readCodexProjectStructure } from '../../ai-vault/codex-project-structure'
 
 type AiVaultHandlerOptions = AiVaultSessionSources &
   AiVaultResumeHandlerOptions & {
@@ -86,9 +87,7 @@ const aiVaultDeleteDeps = {
   invalidateMultiHostListCache: invalidateAiVaultHostLegCache
 }
 
-const resolveAiVaultSessionTitles = (
-  args: AiVaultSessionTitlesArgs
-): Promise<AiVaultSessionTitlesResult> =>
+const resolveAiVaultSessionTitles = (args: AiVaultSessionTitlesArgs) =>
   resolveAiVaultSessionTitlesByHost(args, handlerOptions.resolveRuntimeAiVaultSessionTitles)
 
 async function listAiVaultSessions(
@@ -250,6 +249,7 @@ async function scanLocalAiVaultSessionsAsIssue(
 }
 
 export function registerAiVaultHandlers(options: AiVaultHandlerOptions = {}): void {
+  ipcMain.handle('aiVault:codexProjectStructure', () => readCodexProjectStructure())
   handlerOptions = options
   // Configure the same source/cache instance used by runtime RPC and headless serve.
   configureAiVaultSessionSources(options)

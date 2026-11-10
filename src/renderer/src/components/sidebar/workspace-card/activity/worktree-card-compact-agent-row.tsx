@@ -142,6 +142,13 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
   const hideIcon = hideIdentityIcon || agent.rowSource === 'subagent'
   const { presentation, dotStateOverride } = resolveRowProgramStatus(agent)
   const dotState = dotStateOverride ?? getAgentDotState(agent)
+  const indicatorState = titleOnly
+    ? [dotState, !childAgentsExpanded ? collapsedChildAgentsState : undefined].find(
+        (state) =>
+          state !== undefined &&
+          ['waiting', 'blocked', 'permission', 'failed', 'unconfirmed'].includes(state)
+      )
+    : dotState
   const conversationName = useAgentRowConversationName(agent)
   const primary = getCompactAgentPrimary(agent, conversationName)
   const isLineageChild = agent.lineage?.depth === 1
@@ -166,7 +173,7 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
   const { leadingText, trailingText } = titleOnly
     ? { leadingText: primary, trailingText: null }
     : getCompactAgentLineOrder(agent, dotState, primary, secondary, t)
-  const rowTitle = `${leadingText}${trailingText ? ` - ${trailingText}` : ''}`
+  const rowTitle = `${leadingText}${trailingText ? ` - ${trailingText}` : ''}${titleOnly ? ` · ${agentStateLabel(dotState)}` : ''}`
   const model = agent.entry.model?.trim() ?? ''
   const shortTime = getCompactAgentTime(agent, now)
   const cacheTimer = usePromptCacheCountdownForPane(agent.paneKey, !titleOnly && cacheTimerActive)
@@ -214,13 +221,17 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
 
   // Focused fills wash out muted text; brighten the lead while preserving unread emphasis.
   const leadClassName = cn(
-    isUnvisited ? 'font-semibold text-foreground' : 'font-normal text-muted-foreground/90',
+    titleOnly
+      ? 'font-normal text-worktree-sidebar-foreground'
+      : isUnvisited
+        ? 'font-semibold text-foreground'
+        : 'font-normal text-muted-foreground/90',
     highlighted && !isUnvisited && 'text-foreground'
   )
 
   const rowBody = (
     <>
-      {agent.childRow ? (
+      {agent.childRow && !titleOnly ? (
         // Share chat-strip child content so both surfaces report the same state.
         <AgentChildRowContent
           row={agent.childRow}
@@ -235,14 +246,16 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
       ) : (
         <>
           {/* Show the actionable disabled reason over every hit area. */}
-          <AgentStateDot
-            state={dotState}
-            size="sm"
-            title={sendTargetDisabledReason ? null : undefined}
-            tooltipSide="right"
-            progress={presentation.progress}
-          />
-          {!hideIcon && (
+          {indicatorState ? (
+            <AgentStateDot
+              state={indicatorState}
+              size="sm"
+              title={sendTargetDisabledReason ? null : undefined}
+              tooltipSide="right"
+              progress={indicatorState === dotState ? presentation.progress : undefined}
+            />
+          ) : null}
+          {!hideIcon && !(titleOnly && isLineageChild) && (
             <span className="inline-flex shrink-0" title={formatAgentTypeLabel(agent.agentType)}>
               <AgentTypeIcon agentType={agent.agentType} size={13} />
             </span>
@@ -279,7 +292,7 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
             highlighted ? 'text-foreground/70' : 'text-muted-foreground/70'
           )}
         >
-          {collapsedChildAgentsState && (
+          {!titleOnly && collapsedChildAgentsState && (
             <AgentStateDot state={collapsedChildAgentsState} size="sm" tooltipSide="right" />
           )}
           +{childAgentCount}
@@ -308,8 +321,8 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
       className={cn(
         'compact-agent-row agent-disclosure-row group/compact-agent-row min-w-0 cursor-pointer rounded-sm px-1 text-[11px] leading-none',
         'text-muted-foreground worktree-agent-row-hover',
-        hasChildDisclosure && 'worktree-agent-lineage-parent-row',
-        isLineageChild && 'worktree-agent-lineage-child-row',
+        hasChildDisclosure && !titleOnly && 'worktree-agent-lineage-parent-row',
+        isLineageChild && !titleOnly && 'worktree-agent-lineage-child-row',
         'flex h-6 items-center gap-1',
         titleOnly && 'h-8 rounded-md px-1.5 text-[13px]',
         highlighted && 'bg-worktree-sidebar-accent',
@@ -333,7 +346,11 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
       data-focused-agent-pane={highlighted ? 'true' : undefined}
       data-current={view?.current ? 'true' : undefined}
       aria-current={view?.current ? 'true' : undefined}
-      aria-description={parentConversationDescription}
+      aria-description={
+        titleOnly
+          ? [parentConversationDescription, agentStateLabel(dotState)].filter(Boolean).join(' · ')
+          : parentConversationDescription
+      }
       data-agent-send-target={sendTargetStatus}
       role={agent.lineage ? 'treeitem' : titleOnly ? 'button' : undefined}
       aria-level={agent.lineage ? agent.lineage.depth + 1 : undefined}

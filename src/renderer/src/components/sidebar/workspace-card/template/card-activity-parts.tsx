@@ -2,6 +2,7 @@ import React from 'react'
 import { LinearAgentSkillSetupPrompt } from '../../LinearAgentSkillSetupPrompt'
 import type { WorktreeCardController } from '../controller/use-worktree-card-controller'
 import WorktreeCardAgents from '../activity/WorktreeCardAgents'
+import { WorkspaceChatList } from '../activity/WorkspaceChatDisclosure'
 import {
   renderWorktreeCardIndicators,
   WorktreeCardIdentityHover,
@@ -51,12 +52,16 @@ export const CARD_ACTIVITY_PARTS = {
     <WorktreeCardStatusLane card={card} showUnreadAction={props.unreadAction === true} />
   )),
   Agents: part(['tight'], (props, _children, card) => (
-    <WorktreeCardAgents
-      worktreeId={card.worktree.id}
-      agents={card.agentActivityDisplayMode === 'compact' ? card.compactInlineAgentRows : undefined}
-      // Why: counterbalance the card stack gap so agents right after the title read as one group.
-      className={props.tight === true ? '-mt-1' : 'mt-0'}
-    />
+    <WorkspaceChatList worktreeId={card.worktree.id}>
+      <WorktreeCardAgents
+        worktreeId={card.worktree.id}
+        agents={
+          card.agentActivityDisplayMode === 'compact' ? card.compactInlineAgentRows : undefined
+        }
+        // Why: counterbalance the card stack gap so agents right after the title read as one group.
+        className={props.tight === true ? '-mt-1' : 'mt-0'}
+      />
+    </WorkspaceChatList>
   )),
   RemoteBranchConflict: part([], (_props, _children, { remoteBranchConflict }) =>
     remoteBranchConflict ? (

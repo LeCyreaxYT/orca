@@ -227,8 +227,32 @@
       "existingWhy": "{{distro}} läuft bereits als Host, daher laufen Git, Dateien und Terminals nativ in Linux statt über die Windows-Dateifreigabe.",
       "existingAccept": "Auf Host hinzufügen"
     },
+    "chatSources": {
+      "title": "Chats zuordnen",
+      "description": "Lege fest, wo Codex-Projekte und lokale Claude-Chats erscheinen. Neue Chats kommen automatisch dazu. Bestehende Orca-Chats behalten ihren Platz.",
+      "codexProjects": "Codex-Projekte",
+      "target": "Orca-Bereich",
+      "unmapped": "Nicht zuordnen",
+      "assignProject": "Bereich für {{name}}",
+      "includeClaude": "Claude-Chats aus diesem Ordner einbeziehen",
+      "noCodex": "Keine lokalen Codex-Projekte gefunden. Claude-Ordner kannst du unten zuordnen.",
+      "otherClaude": "Weitere Claude-Ordner",
+      "claudeFolder": "Claude-Projektordner",
+      "folderPath": "Ordnerpfad",
+      "claudeTarget": "Bereich für Claude-Ordner {{index}}",
+      "addFolder": "Ordner hinzufügen",
+      "loading": "Projekte werden gelesen…",
+      "failed": "Codex-Projekte konnten nicht gelesen werden. Öffne diesen Dialog erneut, um es noch einmal zu versuchen.",
+      "apply": "Zuordnung übernehmen",
+      "refreshFailed": "Verknüpfte Chats konnten nicht aktualisiert werden. Deine vorhandenen Chats sind weiterhin verfügbar.",
+      "retry": "Erneut versuchen",
+      "openFailed": "Dieser Chat konnte nicht geöffnet werden. Versuche es erneut."
+    },
     "chatGroups": {
       "newChat": "Neuer Chat",
+      "more": "Mehr anzeigen",
+      "expandWorkspace": "Chats in {{name}} anzeigen",
+      "collapseWorkspace": "Chats in {{name}} ausblenden",
       "loading": "Chats werden geladen…",
       "unavailable": "Nicht verfügbar",
       "noProviders": "Keine Chat-Anbieter verfügbar",
@@ -243,8 +267,7 @@
       "remove": "Gruppe entfernen",
       "pinned": "Angeheftet",
       "general": "Allgemein",
-      "less": "Weniger anzeigen",
-      "all": "Alle {{count}} Chats anzeigen"
+      "less": "Weniger anzeigen"
     }
   },
   "app": {

@@ -1,15 +1,10 @@
+import { useWorktreeAgentSendTargets } from './use-worktree-agent-send-targets'
 import { useWorktreeAgentActivation } from './use-worktree-agent-activation'
 import { SidebarChatGroups } from './SidebarChatGroups'
 import React, { useCallback, useMemo, useRef } from 'react'
-import { useShallow } from 'zustand/react/shallow'
 import { useAppStore } from '@/store'
 import DashboardAgentRow from '@/components/dashboard/DashboardAgentRow'
 import { useNow } from '@/hooks/use-now'
-import { deriveRunningAgentSendTargets } from '@/lib/agent-session/messaging/running-agent-targets'
-import {
-  selectSendTargetControlInputs,
-  selectSendTargetInputs
-} from './worktree-card-send-target-inputs'
 import { useWorktreeAgentRows } from './useWorktreeAgentRows'
 import { useWorktreeAgentDisplay } from './use-worktree-agent-display'
 import { cn } from '@/lib/utils'
@@ -24,7 +19,6 @@ import {
 } from './worktree-agent-list-reveal'
 import { useWorktreeAgentExpansionState } from './worktree-card-agents-expansion-state'
 import { useTranslate } from '@/i18n/use-translate'
-import { agentSendDisabledReasonLabel } from '@/lib/agent-session/messaging/agent-send-disabled-reason-label'
 import { useUiLanguageRevision } from '@/i18n/use-ui-language-revision'
 import { activateRetainedAgentRow } from './activate-retained-agent-row'
 import { useWorktreeAgentUnread } from './use-worktree-agent-unread'
@@ -34,7 +28,12 @@ import {
   ChildAgentsWithIdleGroup,
   buildCollapsedChildAgentSignalStates
 } from './worktree-card-idle-child-agents'
-import { recomputeOn } from '@/lib/recompute-on'
+import {
+  EMPTY_SIDEBAR_CHAT_GROUPS,
+  PINNED_CHAT_GROUP
+} from '../../../../../../shared/sidebar-chat-groups'
+import { sidebarChatGroup } from './sidebar-chat-group-model'
+import { useSidebarChatHistory } from '../../chat-sources/sidebar-chat-history-store'
 
 export { SUPPRESS_WORKTREE_LIST_SCROLL_ADJUSTMENT_EVENT } from './worktree-agent-list-reveal'
 const stopBubble = (event: React.SyntheticEvent): void => event.stopPropagation()
@@ -43,27 +42,37 @@ type Props = {
   worktreeId: string
   agents?: DashboardAgentRowData[]
   className?: string
+  pinnedOnly?: boolean
 }
 
 const WorktreeCardAgents = React.memo(function WorktreeCardAgents({
   worktreeId,
   agents: precomputedAgents,
-  className
+  className,
+  pinnedOnly = false
 }: Props) {
   useUiLanguageRevision()
   const selectedAgents = useWorktreeAgentRows(worktreeId, precomputedAgents === undefined)
   const agents = precomputedAgents ?? selectedAgents
-  const showEmptyGroups = useAppStore(
-    (state) => state.agentActivityDisplayMode === 'full' && state.activeWorktreeId === worktreeId
-  )
   if (agents.length === 0) {
-    if (showEmptyGroups) {
-      return <SidebarChatGroups worktreeId={worktreeId} agents={agents} renderAgent={() => null} />
-    }
-    return null
+    return (
+      <SidebarChatGroups
+        worktreeId={worktreeId}
+        agents={agents}
+        pinnedOnly={pinnedOnly}
+        renderAgent={() => null}
+      />
+    )
   }
   // Only non-empty bodies mount the 30s clock, avoiding timer cost for idle worktrees.
-  return <WorktreeCardAgentsBody worktreeId={worktreeId} agents={agents} className={className} />
+  return (
+    <WorktreeCardAgentsBody
+      worktreeId={worktreeId}
+      agents={agents}
+      className={className}
+      pinnedOnly={pinnedOnly}
+    />
+  )
 })
 
 type BodyProps = Omit<Props, 'agents'> & {
@@ -73,18 +82,15 @@ type BodyProps = Omit<Props, 'agents'> & {
 const WorktreeCardAgentsBody = React.memo(function WorktreeCardAgentsBody({
   worktreeId,
   agents,
-  className
+  className,
+  pinnedOnly = false
 }: BodyProps) {
   const t = useTranslate()
-  const languageRevision = useUiLanguageRevision()
   const { agentActivityDisplayMode, showAgentModels } = useWorktreeAgentDisplay()
   const dropAgentStatus = useAppStore((s) => s.dropAgentStatus)
   const dismissRetainedAgent = useAppStore((s) => s.dismissRetainedAgent)
-  const { targetMode: agentSendPopoverTargetMode, agentStatusEpoch } = useAppStore(
-    useShallow((s) => selectSendTargetControlInputs(s, worktreeId))
-  )
-  const sendTargetInputs = useAppStore(useShallow((s) => selectSendTargetInputs(s, worktreeId)))
-  const sendPromptToSidebarAgentTarget = useAppStore((s) => s.sendPromptToSidebarAgentTarget)
+  const { isAgentSendTargetModeActive, handleSendTargetClick, sendTargetFor } =
+    useWorktreeAgentSendTargets(worktreeId)
   const focusedAgentPaneKey = useFocusedAgentPaneKey(worktreeId)
   const compactAgentListRootRef = useRef<HTMLDivElement | null>(null)
 
@@ -98,57 +104,6 @@ const WorktreeCardAgentsBody = React.memo(function WorktreeCardAgentsBody({
     [dropAgentStatus, dismissRetainedAgent]
   )
 
-  const isAgentSendTargetModeActive = agentSendPopoverTargetMode !== null
-  const sendTargetsByPaneKey = useMemo(
-    () =>
-      recomputeOn([agentStatusEpoch, languageRevision], () => {
-        if (!isAgentSendTargetModeActive) {
-          return new Map<
-            string,
-            { status: 'eligible' | 'disabled' | 'sending'; disabledReason?: string }
-          >()
-        }
-
-        return new Map(
-          deriveRunningAgentSendTargets(sendTargetInputs, worktreeId).map((target) => [
-            target.paneKey,
-            agentSendPopoverTargetMode?.status === 'sending' &&
-            agentSendPopoverTargetMode.sendingPaneKey === target.paneKey
-              ? {
-                  status: 'sending' as const,
-                  disabledReason: t(
-                    'auto.components.sidebar.WorktreeCardAgents.sendingTarget',
-                    'Sending...'
-                  )
-                }
-              : target.disabledReason
-                ? {
-                    status: target.status,
-                    disabledReason: agentSendDisabledReasonLabel(target.disabledReason)
-                  }
-                : { status: target.status }
-          ])
-        )
-      }),
-    [
-      // Freshness timers advance this epoch without replacing the status map.
-      agentStatusEpoch,
-      languageRevision,
-      agentSendPopoverTargetMode,
-      isAgentSendTargetModeActive,
-      sendTargetInputs,
-      worktreeId,
-      t
-    ]
-  )
-
-  const handleSendTargetClick = useCallback(
-    (paneKey: string) => {
-      void sendPromptToSidebarAgentTarget(paneKey)
-    },
-    [sendPromptToSidebarAgentTarget]
-  )
-
   const handleActivateAgentTab = useWorktreeAgentActivation(worktreeId)
   const handleActivateRetainedAgent = useCallback(
     (tabId: string, paneKey: string) => activateRetainedAgentRow(worktreeId, tabId, paneKey),
@@ -157,7 +112,20 @@ const WorktreeCardAgentsBody = React.memo(function WorktreeCardAgentsBody({
 
   const now = useNow(30_000)
   const lineageTree = useMemo(() => buildAgentRowLineageTree(agents), [agents])
-  const { rootRows: rootAgents, childrenByParentPaneKey } = lineageTree
+  const { rootRows: allRootAgents, childrenByParentPaneKey } = lineageTree
+  const chatGroups = useAppStore(
+    (state) => state.sidebarChatGroupsByWorktree[worktreeId] ?? EMPTY_SIDEBAR_CHAT_GROUPS
+  )
+  const providerPins = useSidebarChatHistory((state) => state.structure.pinned)
+  const rootAgents = useMemo(
+    () =>
+      agentActivityDisplayMode === 'compact' && !pinnedOnly
+        ? allRootAgents.filter(
+            (agent) => sidebarChatGroup(agent, chatGroups, providerPins) !== PINNED_CHAT_GROUP
+          )
+        : allRootAgents,
+    [allRootAgents, chatGroups, providerPins, agentActivityDisplayMode, pinnedOnly]
+  )
   const hasLineage = childrenByParentPaneKey.size > 0
   const collapsedChildAgentSignalStates = useMemo(
     () => buildCollapsedChildAgentSignalStates(childrenByParentPaneKey),
@@ -193,16 +161,6 @@ const WorktreeCardAgentsBody = React.memo(function WorktreeCardAgentsBody({
     [toggleIdleChildGroupState]
   )
 
-  const sendTargetFor = (paneKey: string) =>
-    isAgentSendTargetModeActive
-      ? (sendTargetsByPaneKey.get(paneKey) ?? {
-          status: 'disabled' as const,
-          disabledReason: t(
-            'auto.components.sidebar.WorktreeCardAgents.agentUnavailable',
-            'Agent is not available'
-          )
-        })
-      : undefined
   // Picker rows are the send targets, so every lineage level stays open while picking.
   const isLineageExpanded = (paneKey: string): boolean =>
     isAgentSendTargetModeActive || expandedLineageParents.has(paneKey)
@@ -309,7 +267,7 @@ const WorktreeCardAgentsBody = React.memo(function WorktreeCardAgentsBody({
       <div key={agent.paneKey} className="min-w-0">
         <CompactAgentRow
           agent={agent}
-          titleOnly={agentActivityDisplayMode === 'full'}
+          titleOnly={pinnedOnly || agentActivityDisplayMode === 'full'}
           showModel={showAgentModels}
           now={now}
           parentConversationDescription={
@@ -352,12 +310,12 @@ const WorktreeCardAgentsBody = React.memo(function WorktreeCardAgentsBody({
     )
   }
 
-  if (agentActivityDisplayMode === 'compact') {
-    const summaryAgents = hasLineage ? rootAgents : agents
+  if (agentActivityDisplayMode === 'compact' && !pinnedOnly) {
+    const summaryAgents = rootAgents
     // Collapse compact multi-agent lists except when their rows are the send-target picker.
     const shouldUseSummaryRow = summaryAgents.length > 1 && !isAgentSendTargetModeActive
     const subjectLabel = t('sidebar.agentSummary.agentCount', '{{count}} agents', {
-      count: hasLineage ? rootAgents.length : agents.length,
+      count: rootAgents.length,
       defaultValue_one: '{{count}} agent'
     })
 
@@ -413,11 +371,12 @@ const WorktreeCardAgentsBody = React.memo(function WorktreeCardAgentsBody({
       role={hasLineage ? 'tree' : 'group'}
       aria-label={t('auto.components.sidebar.WorktreeCardAgents.1b0a156717', 'Agents')}
     >
-      {isAgentSendTargetModeActive ? (
+      {isAgentSendTargetModeActive && !pinnedOnly ? (
         rootAgents.map((rootAgent) => renderAgentBranch(rootAgent))
       ) : (
         <SidebarChatGroups
           worktreeId={worktreeId}
+          pinnedOnly={pinnedOnly}
           agents={rootAgents}
           renderAgent={renderCompactAgentBranch}
           focused={

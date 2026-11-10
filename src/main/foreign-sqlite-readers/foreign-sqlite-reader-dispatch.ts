@@ -5,6 +5,7 @@ import type {
 import { readCursorProfile } from './readers/cursor-profile'
 import { readOpenCodeBinderSessions } from './readers/opencode-binder-sessions'
 import { readOpenCodePromptFailure } from './readers/opencode-prompt-failure'
+import { readCodexSidebar } from './readers/codex-sidebar'
 
 /** Structured-clone requests may carry unknown kinds despite the static type. */
 export function handleForeignSqliteReaderRequest(
@@ -14,6 +15,8 @@ export function handleForeignSqliteReaderRequest(
   const { id, kind } = request
   try {
     switch (kind) {
+      case 'codexSidebar':
+        return { id, ok: true, value: readCodexSidebar(request.dbPath) }
       case 'cursorProfile':
         return { id, ok: true, value: readCursorProfile(request.dbPath) }
       case 'openCodeBinderSessions':

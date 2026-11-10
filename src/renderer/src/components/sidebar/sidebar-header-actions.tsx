@@ -7,6 +7,7 @@ import { formatOptionalPrimaryShortcutLabel } from '@/hooks/useShortcutLabel'
 import { useTranslate } from '@/i18n/use-translate'
 import { openWorkspaceCreationComposerWithTourHandoff } from '../contextual-tours/workspace-creation-tour-handoff'
 import SidebarWorkspaceOptionsMenu from './worktree-list/controls/SidebarWorkspaceOptionsMenu'
+import { SidebarChatMappingDialog } from './chat-sources/SidebarChatMappingDialog'
 
 function AddProjectButton({
   preserveWorkspaceBoardOpen
@@ -89,6 +90,7 @@ export function SidebarHeaderActions({
 }): React.JSX.Element {
   return (
     <div className="flex shrink-0 items-center gap-1" data-sidebar-header-actions="">
+      <SidebarChatMappingDialog />
       <div ref={activityOptionsTarget} className="flex size-6 shrink-0 items-center">
         {agentsViewActive ? null : (
           <SidebarWorkspaceOptionsMenu

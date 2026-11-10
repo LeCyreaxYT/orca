@@ -6,8 +6,9 @@
     "compact": "options.style == 'compact'",
     "newStyle": "options.style == 'new'",
     "folder": "ws.kind == 'folder'",
+    "chatNavigation": "options.agentRows == 'full' && options.show.inlineAgents",
     "pinnedRepo": "place.inPinnedSection && repo != null && !place.showProjectName",
-    "inlineRepo": "!vars.classic && repo != null && !place.hideRepoBadge && !vars.folder && !vars.pinnedRepo",
+    "inlineRepo": "!vars.chatNavigation && !vars.classic && repo != null && !place.hideRepoBadge && !vars.folder && !vars.pinnedRepo",
     "metaRepo": "vars.classic && repo != null && !place.hideRepoBadge && !vars.pinnedRepo",
     "hostLabel": "options.show.host ? host.contextLabel : null",
     "hostBadge": "vars.hostLabel != null && (!vars.compact || place.showProjectName)",
@@ -23,7 +24,7 @@
     "indicators": "vars.details || vars.ports",
     "metaIndicators": "vars.classic && vars.indicators",
     "titleIndicators": "!vars.classic && vars.indicators",
-    "hasMetaRow": "vars.metaRow ? vars.metaRepo || vars.hostBadge || vars.folderInMeta || vars.branch || vars.identityInMeta || vars.detachedInMeta || vars.conflict || git.cacheTimerActive || vars.metaIndicators : vars.conflict || git.cacheTimerActive",
+    "hasMetaRow": "!vars.chatNavigation && (vars.metaRow ? vars.metaRepo || vars.hostBadge || vars.folderInMeta || vars.branch || vars.identityInMeta || vars.detachedInMeta || vars.conflict || git.cacheTimerActive || vars.metaIndicators : vars.conflict || git.cacheTimerActive)",
     "star": "vars.compact && ws.isMain && !vars.folder",
     "headerActions": "vars.star || place.deleteQuickAction || !place.affiliateList",
     "inlineAgents": "options.show.inlineAgents && !vars.compact",
@@ -44,13 +45,19 @@
       "children": [
         {
           "el": "Row",
-          "props": { "align": "center", "justify": "between", "gap": "lg" },
+          "props": {
+            "align": "center",
+            "justify": "between",
+            "gap": "lg",
+            "marker": "=vars.chatNavigation ? 'navigation-header' : ''"
+          },
           "children": [
             {
               "el": "Row",
               "props": { "grow": true, "align": "center", "gap": "md" },
               "children": [
-                { "el": "RepoChip", "when": "vars.pinnedRepo" },
+                { "el": "ChatDisclosure", "when": "vars.chatNavigation" },
+                { "el": "RepoChip", "when": "vars.pinnedRepo && !vars.chatNavigation" },
                 {
                   "el": "SshControl",
                   "when": "host.kind == 'ssh'",
@@ -171,7 +178,7 @@
     "children": [
       {
         "el": "StatusLane",
-        "when": "options.show.status",
+        "when": "options.show.status && !vars.chatNavigation",
         "props": { "unreadAction": "=!place.affiliateList && !vars.newStyle" }
       },
       {

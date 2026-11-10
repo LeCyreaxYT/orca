@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs'
 import { stat } from 'node:fs/promises'
+import type { CodexSidebarResult } from './codex-sidebar-result'
 import type { Worker } from 'node:worker_threads'
 import { spawnWorkerThread } from '../worker-threads/worker-thread-spawn'
 import { currentWorkerEntryLayout } from '../worker-threads/worker-thread-entry-path'
@@ -25,6 +26,10 @@ let sharedClient: ForeignSqliteReaderClient | null = null
 function getSharedClient(): ForeignSqliteReaderClient {
   sharedClient ??= new ForeignSqliteReaderClient({ workerFactory: defaultWorkerFactory })
   return sharedClient
+}
+
+export function readCodexDesktopSidebar(dbPath: string): Promise<CodexSidebarResult> {
+  return getSharedClient().readCodexSidebar(dbPath)
 }
 
 export function readCursorDesktopProfile(dbPath: string): Promise<CursorDesktopProfileReadResult> {

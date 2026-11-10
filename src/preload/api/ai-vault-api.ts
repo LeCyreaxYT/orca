@@ -3,6 +3,7 @@ import type {
   AiVaultSearchResponse,
   AiVaultSearchStatus
 } from '../../shared/ai-vault/search/ai-vault-search-types'
+import type { CodexProjectStructure } from '../../shared/ai-vault/contracts/codex-project-structure'
 import type {
   AiVaultDeleteSessionArgs,
   AiVaultDeleteSessionResult
@@ -30,6 +31,7 @@ import type {
 } from '../../shared/ai-vault/scanning/ai-vault-scan-progress'
 
 export type AiVaultApi = {
+  codexProjectStructure: () => Promise<CodexProjectStructure>
   /** Omitted host means this host; `all` is merged by this desktop across every enumerated host. */
   searchSessions: (
     request: AiVaultSearchRequest,

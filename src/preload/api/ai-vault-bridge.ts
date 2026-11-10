@@ -37,6 +37,7 @@ function searchClient(
 }
 
 export const aiVaultApi = {
+  codexProjectStructure: () => ipcRenderer.invoke('aiVault:codexProjectStructure'),
   searchSessions: (request: AiVaultSearchRequest, executionHostScope?: ExecutionHostScope) =>
     searchClient(executionHostScope).searchSessions(request),
   searchStatus: (executionHostScope?: ExecutionHostId) =>

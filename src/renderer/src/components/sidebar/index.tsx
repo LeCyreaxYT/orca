@@ -23,6 +23,9 @@ import { LocalGitToolchainScanBanner } from './LocalGitToolchainScanBanner'
 import { SeveredTerminalDaemonBanner } from './SeveredTerminalDaemonBanner'
 import { StalledTerminalDaemonBanner } from './StalledTerminalDaemonBanner'
 import { StartupWorktreeRefreshStatus } from './StartupWorktreeRefreshStatus'
+import { SidebarChatHistorySync } from './chat-sources/SidebarChatHistorySync'
+import { SidebarChatSourceNotice } from './chat-sources/SidebarChatSourceNotice'
+import { SidebarPinnedChats } from './chat-sources/SidebarPinnedChats'
 
 // Load the shared Activity badge/list pipeline after the sidebar shell.
 const SidebarAgentsList = lazyWithRetry(() => import('./SidebarAgentsList'))
@@ -170,17 +173,19 @@ function Sidebar({
 
   return (
     <TooltipProvider>
+      <SidebarChatHistorySync />
       {/* Why: the handle lives outside the clipped sidebar so its outer half isn't cut off. */}
       <div className="relative flex min-h-0 flex-shrink-0 scrollbar-sleek-parent">
         <div
           ref={sidebarRef}
-          className="relative min-h-0 flex-shrink-0 bg-worktree-sidebar flex flex-col overflow-hidden"
+          className="@container/sidebar relative min-h-0 flex-shrink-0 bg-worktree-sidebar flex flex-col overflow-hidden"
           style={leftSidebarStyle}
           {...dropHandlers}
         >
           {sidebarOpen && (
             <>
               <SidebarNav />
+              <SidebarPinnedChats />
               <SidebarHeader
                 activityBadgeTarget={setAgentBadgeTarget}
                 onWorkspaceBoardMenuOpenChange={setWorkspaceBoardMenuOpen}
@@ -188,6 +193,7 @@ function Sidebar({
                 projectsCollapseTarget={setProjectsCollapseTarget}
               />
               <SeveredTerminalDaemonBanner />
+              <SidebarChatSourceNotice />
               <StalledTerminalDaemonBanner />
               <React.Suspense
                 fallback={sidebarBody === 'agents' ? <div className="min-h-0 flex-1" /> : null}

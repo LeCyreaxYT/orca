@@ -36,7 +36,11 @@ describe('sidebar chat organization', () => {
       },
       { kind: 'remove', id: 'release' }
     )
-    expect(next).toEqual({ groups: [], assignments: { other: 'pinned' }, collapsed: [] })
+    expect(next).toEqual({
+      groups: [],
+      assignments: { parent: 'general', other: 'pinned' },
+      collapsed: []
+    })
   })
 
   it('keeps valid workspaces when an old or invalid workspace entry cannot be restored', () => {

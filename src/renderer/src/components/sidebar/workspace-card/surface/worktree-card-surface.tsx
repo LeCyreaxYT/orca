@@ -50,8 +50,14 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
     !affiliateListMode && !isDeleting && !titleRenaming && !isRuntimeDisconnected
   )
   const isSleeping = useIsSleepingWorktree(worktree.id)
+  const chatNavigation =
+    card.agentActivityDisplayMode === 'full' && card.cardProps.includes('inline-agents')
   const geometryFor = (statusLane: boolean) =>
-    getWorktreeCardFrameGeometry({ flushSurface, contentIndent, statusLane })
+    getWorktreeCardFrameGeometry({
+      flushSurface,
+      contentIndent,
+      statusLane
+    })
   const { content: parentCardContent, frame } = renderWorkspaceCardTemplate(
     card,
     DEFAULT_WORKSPACE_CARD_TEMPLATE,
@@ -64,12 +70,17 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
   )
   const { cardStyle } = geometryFor(frame.statusLane)
   const titleOnlyCard = frame.singleLine
+  const parentContent = chatNavigation ? (
+    <div className="@3xs/sidebar:pl-4">{parentCardContent}</div>
+  ) : (
+    parentCardContent
+  )
 
   const cardBody = (
     <div
       className={cn(
         'relative flex cursor-pointer flex-col pr-1.5 transition-[background-color,border-color,opacity,box-shadow] duration-200 outline-none select-none',
-        titleOnlyCard ? 'py-2' : 'pt-1.25 pb-1.5',
+        chatNavigation ? 'py-0.5' : titleOnlyCard ? 'py-2' : 'pt-1.25 pb-1.5',
         flushSurface ? 'ml-1 w-[calc(100%-0.25rem)]' : 'ml-1',
         'overflow-hidden rounded-lg',
         // Navigation updates the live attribute before React; it must own the complete active style.
@@ -77,7 +88,8 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
           ? 'border border-worktree-sidebar-foreground/40 bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground ring-1 ring-inset ring-worktree-sidebar-ring/60'
           : isActiveSurface
             ? 'border border-transparent'
-            : 'border border-transparent worktree-sidebar-card-hover',
+            : 'border border-transparent',
+        !chatNavigation && !isActiveSurface && 'worktree-sidebar-card-hover',
         isActiveSurface && isMultiSelected && 'ring-1 ring-worktree-sidebar-ring/35',
         revealHighlight && [
           'scroll-to-current-workspace-reveal-highlight',
@@ -89,6 +101,7 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
         isRuntimeDisconnected && !isDeleting && 'opacity-60'
       )}
       data-worktree-card-surface="true"
+      data-chat-navigation={chatNavigation ? '' : undefined}
       data-worktree-card-active={
         isActiveSurface && !isLineageDropTarget && !sessionDrop.hovering
           ? activeSurfaceVariant
@@ -125,9 +138,9 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
       )}
       {isSleeping && newCardStyle && !isDeleting ? (
         // Mix tokens for background-independent sleep dimming; scope to the parent so awake children stay bright.
-        <div data-worktree-sleeping-dim="">{parentCardContent}</div>
+        <div data-worktree-sleeping-dim="">{parentContent}</div>
       ) : (
-        parentCardContent
+        parentContent
       )}
 
       {lineageChildren ? (

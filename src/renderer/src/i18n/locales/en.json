@@ -230,8 +230,32 @@
       "existingWhy": "{{distro}} already runs as a host, so Git, files and terminals run natively in Linux instead of across the Windows file share.",
       "existingAccept": "Add on host"
     },
+    "chatSources": {
+      "title": "Assign chats",
+      "description": "Choose where Codex projects and local Claude chats appear. New conversations are added automatically; existing Orca chats keep their place.",
+      "codexProjects": "Codex projects",
+      "target": "Orca workspace",
+      "unmapped": "Do not assign",
+      "assignProject": "Workspace for {{name}}",
+      "includeClaude": "Include Claude chats in this folder",
+      "noCodex": "No local Codex projects found. You can still assign Claude folders below.",
+      "otherClaude": "Other Claude folders",
+      "claudeFolder": "Claude project folder",
+      "folderPath": "Folder path",
+      "claudeTarget": "Workspace for Claude folder {{index}}",
+      "addFolder": "Add folder",
+      "loading": "Reading projects…",
+      "failed": "Could not read Codex projects. Close and reopen this dialog to retry.",
+      "apply": "Apply assignments",
+      "refreshFailed": "Could not refresh linked chats. Your existing chats are still available.",
+      "retry": "Try again",
+      "openFailed": "Could not open this chat. Try again."
+    },
     "chatGroups": {
       "newChat": "New chat",
+      "more": "Show more",
+      "expandWorkspace": "Show chats in {{name}}",
+      "collapseWorkspace": "Hide chats in {{name}}",
       "loading": "Loading chats…",
       "unavailable": "Unavailable",
       "noProviders": "No chat providers available",
@@ -246,8 +270,7 @@
       "remove": "Remove group",
       "pinned": "Pinned",
       "general": "General",
-      "less": "Show less",
-      "all": "Show all {{count}} chats"
+      "less": "Show less"
     }
   },
   "app": {

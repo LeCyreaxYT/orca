@@ -85,16 +85,28 @@ export function SidebarChatGroupName({
   )
 }
 
-export function SidebarChatAddGroup({ worktreeId }: { worktreeId: string }) {
+export function SidebarChatAddGroup({
+  worktreeId,
+  iconOnly = false
+}: {
+  worktreeId: string
+  iconOnly?: boolean
+}) {
   const t = useTranslate()
   const edit = useAppStore((state) => state.editSidebarChatGroup)
   return (
     <SidebarChatGroupName
       onSave={(name) => edit(worktreeId, { kind: 'add', id: createBrowserUuid(), name })}
       trigger={
-        <Button type="button" variant="pane-title" size="xs" className="mt-1 justify-start">
+        <Button
+          type="button"
+          variant={iconOnly ? 'ghost' : 'pane-title'}
+          size={iconOnly ? 'icon-xs' : 'xs'}
+          aria-label={t('sidebar.chatGroups.add', 'New group')}
+          className={iconOnly ? undefined : 'mt-1 justify-start'}
+        >
           <FolderPlus className="size-3.5" />
-          {t('sidebar.chatGroups.add', 'New group')}
+          {!iconOnly && t('sidebar.chatGroups.add', 'New group')}
         </Button>
       }
     />

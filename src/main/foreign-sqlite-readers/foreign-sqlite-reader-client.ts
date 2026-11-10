@@ -1,4 +1,9 @@
 import type { WorkerThreadFactory } from '../worker-threads/worker-thread-transport'
+import {
+  codexSidebarUnavailable,
+  parseCodexSidebarResult,
+  type CodexSidebarResult
+} from './codex-sidebar-result'
 import { WorkerThreadRequestQueue } from '../worker-threads/worker-thread-request-queue'
 import {
   cursorProfileReadFailure,
@@ -26,6 +31,7 @@ import {
 // Foreign SQLite opens can block on WAL rebuilds; isolate each reader so slow databases cannot stall main or peers.
 
 const READ_TIMEOUT_MS: Record<ForeignSqliteReaderKind, number> = {
+  codexSidebar: 5_000,
   // Allow margin beyond observed 4–6s WAL-index rebuilds.
   cursorProfile: 10_000,
   openCodeBinderSessions: 60_000,
@@ -33,6 +39,7 @@ const READ_TIMEOUT_MS: Record<ForeignSqliteReaderKind, number> = {
 }
 // Keep workers alive across poll intervals to avoid spawning on every round.
 const DEFAULT_IDLE_TEARDOWN_MS: Record<ForeignSqliteReaderKind, number> = {
+  codexSidebar: 120_000,
   cursorProfile: 30_000,
   // The binder polls once per minute.
   openCodeBinderSessions: 120_000,
@@ -128,6 +135,7 @@ export class ForeignSqliteReaderLane<T> {
 }
 
 export class ForeignSqliteReaderClient {
+  private readonly codexSidebar: ForeignSqliteReaderLane<CodexSidebarResult>
   private readonly cursorProfile: ForeignSqliteReaderLane<CursorDesktopProfileReadResult>
   private readonly openCodeBinderSessions: ForeignSqliteReaderLane<BinderSessionRow[]>
   private readonly openCodePromptFailure: ForeignSqliteReaderLane<OpenCodePromptFailureResult>
@@ -149,6 +157,12 @@ export class ForeignSqliteReaderClient {
       parseCursorProfileReadResult,
       cursorProfileReadFailure,
       settings('cursorProfile')
+    )
+    this.codexSidebar = new ForeignSqliteReaderLane(
+      'codexSidebar',
+      parseCodexSidebarResult,
+      codexSidebarUnavailable,
+      settings('codexSidebar')
     )
     this.openCodeBinderSessions = new ForeignSqliteReaderLane(
       'openCodeBinderSessions',
@@ -184,9 +198,14 @@ export class ForeignSqliteReaderClient {
   }
 
   dispose(): void {
+    this.codexSidebar.dispose()
     this.cursorProfile.dispose()
     this.openCodeBinderSessions.dispose()
     this.openCodePromptFailure.dispose()
+  }
+
+  readCodexSidebar(dbPath: string): Promise<CodexSidebarResult> {
+    return this.codexSidebar.read(dbPath, (id) => ({ id, kind: 'codexSidebar', dbPath }))
   }
 
   readOpenCodePromptFailure(

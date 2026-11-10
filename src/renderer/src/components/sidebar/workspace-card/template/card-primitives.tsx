@@ -29,7 +29,8 @@ const OVERFLOW: Readonly<Record<string, string>> = {
 const MARKERS: Readonly<Record<string, string>> = {
   'parent-content': 'data-worktree-card-parent-content',
   'meta-row': 'data-worktree-card-meta-row',
-  'hover-trigger': 'data-worktree-card-hover-trigger'
+  'hover-trigger': 'data-worktree-card-hover-trigger',
+  'navigation-header': 'data-sidebar-workspace-header'
 }
 
 const BOX_PROPS = [

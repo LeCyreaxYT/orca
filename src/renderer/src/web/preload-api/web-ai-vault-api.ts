@@ -36,6 +36,7 @@ import {
 import { requireActiveEnvironment } from './web-runtime-session'
 import { noopUnsubscribe } from './web-storage'
 import { translate } from '@/i18n/i18n'
+import { EMPTY_CODEX_PROJECT_STRUCTURE } from '../../../../shared/ai-vault/contracts/codex-project-structure'
 
 export function createWebAiVaultApi(): NonNullable<Partial<PreloadApi>['aiVault']> {
   const search = createSessionSearchClient(
@@ -43,6 +44,7 @@ export function createWebAiVaultApi(): NonNullable<Partial<PreloadApi>['aiVault'
     'relay'
   )
   return {
+    codexProjectStructure: () => Promise.resolve(EMPTY_CODEX_PROJECT_STRUCTURE),
     // A browser searches only its selected paired runtime.
     searchSessions: (request, executionHostScope) =>
       addressesOwnRuntime(executionHostScope)

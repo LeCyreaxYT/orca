@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, SquarePen } from 'lucide-react'
 import { useAppStore } from '@/store'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,7 +24,7 @@ import {
 } from '../../../../../../shared/agent-session/view/structured-agent-session-projection'
 import { getAgentLabel } from '@/lib/agent-catalog/agent-catalog'
 
-type Props = { worktreeId: string; sidebarGroupId?: string; disabled?: boolean }
+type Props = { worktreeId: string; sidebarGroupId?: string; disabled?: boolean; labelled?: boolean }
 
 function ChatChoices({
   worktreeId,
@@ -115,17 +115,30 @@ export function WorkspaceNewChatButton(props: Props) {
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              aria-label={label}
-              disabled={props.disabled}
-              onPointerDown={(event) => event.stopPropagation()}
-              onClick={(event) => event.stopPropagation()}
-            >
-              <Plus className="size-3.5" />
-            </Button>
+            {props.labelled ? (
+              <button
+                type="button"
+                className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-worktree-sidebar-foreground hover:bg-worktree-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                disabled={props.disabled}
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <SquarePen className="size-4" />
+                <span>{label}</span>
+              </button>
+            ) : (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                aria-label={label}
+                disabled={props.disabled}
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <Plus className="size-3.5" />
+              </Button>
+            )}
           </DropdownMenuTrigger>
         </TooltipTrigger>
         <TooltipContent>{label}</TooltipContent>

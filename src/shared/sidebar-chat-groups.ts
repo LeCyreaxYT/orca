@@ -1,14 +1,27 @@
 import { z } from 'zod'
+import { normalizeExecutionHostId, type ExecutionHostId } from './execution-host'
 
 export const PINNED_CHAT_GROUP = 'pinned'
 export const GENERAL_CHAT_GROUP = 'general'
+
+export const SidebarChatSource = z.object({
+  agent: z.enum(['codex', 'claude']),
+  path: z.string().min(1).max(4096),
+  projectId: z.string().min(1).max(256).optional(),
+  executionHostId: z.custom<ExecutionHostId>(
+    (value) => typeof value === 'string' && normalizeExecutionHostId(value) === value
+  )
+})
+export type SidebarChatSource = z.infer<typeof SidebarChatSource>
 
 const WorkspaceChatGroups = z.object({
   groups: z
     .array(z.object({ id: z.string().min(1).max(128), name: z.string().trim().min(1).max(80) }))
     .max(100),
   assignments: z.record(z.string(), z.string()),
-  collapsed: z.array(z.string()).max(102)
+  collapsed: z.array(z.string()).max(102),
+  sources: z.array(SidebarChatSource).max(64).optional(),
+  workspaceCollapsed: z.boolean().optional()
 })
 
 export type SidebarChatGroups = z.infer<typeof WorkspaceChatGroups>
@@ -43,6 +56,7 @@ export function normalizeSidebarChatGroups(value: unknown): SidebarChatGroupsByW
       return true
     })
     result[workspaceId] = {
+      ...parsed.data,
       groups,
       assignments: Object.fromEntries(
         Object.entries(parsed.data.assignments).filter(([, id]) => ids.has(id))
@@ -61,6 +75,8 @@ export type SidebarChatGroupEdit =
   | { kind: 'remove'; id: string }
   | { kind: 'move'; chatId: string; groupId: string }
   | { kind: 'toggle'; id: string }
+  | { kind: 'sources'; sources: SidebarChatSource[] }
+  | { kind: 'toggle-workspace' }
 
 export function editSidebarChatGroups(
   state: SidebarChatGroups,
@@ -68,6 +84,10 @@ export function editSidebarChatGroups(
 ): SidebarChatGroups {
   const ids = groupIds(state)
   switch (edit.kind) {
+    case 'sources':
+      return { ...state, sources: z.array(SidebarChatSource).max(64).parse(edit.sources) }
+    case 'toggle-workspace':
+      return { ...state, workspaceCollapsed: !state.workspaceCollapsed }
     case 'add':
       if (ids.has(edit.id) || !edit.name.trim() || state.groups.length >= 100) {
         return state
@@ -91,9 +111,13 @@ export function editSidebarChatGroups(
         return state
       }
       return {
+        ...state,
         groups: state.groups.filter((group) => group.id !== edit.id),
         assignments: Object.fromEntries(
-          Object.entries(state.assignments).filter(([, id]) => id !== edit.id)
+          Object.entries(state.assignments).map(([chatId, id]) => [
+            chatId,
+            id === edit.id ? GENERAL_CHAT_GROUP : id
+          ])
         ),
         collapsed: state.collapsed.filter((id) => id !== edit.id)
       }
@@ -102,11 +126,7 @@ export function editSidebarChatGroups(
         return state
       }
       const assignments = { ...state.assignments }
-      if (edit.groupId === GENERAL_CHAT_GROUP) {
-        delete assignments[edit.chatId]
-      } else {
-        assignments[edit.chatId] = edit.groupId
-      }
+      assignments[edit.chatId] = edit.groupId
       return {
         ...state,
         assignments,
