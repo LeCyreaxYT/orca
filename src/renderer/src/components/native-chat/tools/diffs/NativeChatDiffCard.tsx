@@ -3,6 +3,9 @@ import { useLayoutEffect, useMemo, useRef } from 'react'
 import { useNativeChatDisclosure } from '../../messages/disclosure/native-chat-disclosure-store'
 import { ChevronRight, FilePlus2, FileMinus2, FilePen } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { SyntaxLine } from '@/lib/syntax-highlighting/incremental-syntax-tokenizer'
+import { NativeChatHighlightedLine } from '../../markdown/code/NativeChatHighlightedCode'
+import { useNativeChatDiffSyntax } from './use-native-chat-diff-syntax'
 import { useTranslate } from '@/i18n/use-translate'
 import { DiffLineCounts } from '../../../right-sidebar/source-control/listing/diff-line-counts'
 import { NativeChatCopyButton } from '../../messages/actions/NativeChatCopyButton'
@@ -42,7 +45,15 @@ function DiffGapRow(): React.JSX.Element {
   )
 }
 
-function DiffRow({ line, gutterWidth }: { line: NativeChatEditLine; gutterWidth: number }) {
+function DiffRow({
+  line,
+  gutterWidth,
+  syntax
+}: {
+  line: NativeChatEditLine
+  gutterWidth: number
+  syntax?: SyntaxLine
+}) {
   if (line.kind === 'gap') {
     return <DiffGapRow />
   }
@@ -80,7 +91,15 @@ function DiffRow({ line, gutterWidth }: { line: NativeChatEditLine; gutterWidth:
         {line.kind === 'add' ? '+' : line.kind === 'del' ? '-' : ' '}
       </span>
       <span className="min-w-0 whitespace-pre-wrap break-words pr-2 text-chat-foreground">
-        {line.text}
+        {syntax ? (
+          <NativeChatHighlightedLine
+            line={syntax}
+            includeEnding={false}
+            diff={line.kind === 'add' || line.kind === 'del'}
+          />
+        ) : (
+          line.text
+        )}
       </span>
     </div>
   )
@@ -89,12 +108,15 @@ function DiffRow({ line, gutterWidth }: { line: NativeChatEditLine; gutterWidth:
 /** Mount rows separately so collapsed cards do not build their DOM. */
 function DiffCardRows({
   lines,
-  gutterWidth
+  gutterWidth,
+  path
 }: {
   lines: NativeChatEditFile['lines']
   gutterWidth: number
+  path: string
 }): React.JSX.Element {
   const seen = new Map<string, number>()
+  const syntax = useNativeChatDiffSyntax(lines, path)
   return (
     // Focusable so the rows can be scrolled from the keyboard.
     <div
@@ -102,11 +124,18 @@ function DiffCardRows({
       tabIndex={0}
       className="ml-6 mt-1 max-h-72 overflow-auto rounded-lg border border-chat-code-border bg-chat-code-surface py-1 font-mono text-chat-code leading-relaxed text-chat-foreground scrollbar-sleek focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
     >
-      {lines.map((line) => {
+      {lines.map((line, index) => {
         const signature = `${line.kind}:${line.oldLineNumber}:${line.newLineNumber}:${line.text}`
         const occurrence = seen.get(signature) ?? 0
         seen.set(signature, occurrence + 1)
-        return <DiffRow key={`${signature}:${occurrence}`} line={line} gutterWidth={gutterWidth} />
+        return (
+          <DiffRow
+            key={`${signature}:${occurrence}`}
+            line={line}
+            gutterWidth={gutterWidth}
+            syntax={syntax[index]}
+          />
+        )
       })}
     </div>
   )
@@ -205,7 +234,7 @@ export function NativeChatDiffCard({
       </div>
       {hasBody ? (
         <NativeChatExpandable open={expanded}>
-          <DiffCardRows lines={file.lines} gutterWidth={gutterWidth} />
+          <DiffCardRows lines={file.lines} gutterWidth={gutterWidth} path={file.path} />
         </NativeChatExpandable>
       ) : null}
     </div>

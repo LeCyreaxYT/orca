@@ -14,6 +14,9 @@ import {
   nativeChatToolOutputPartialSizes
 } from '../../../../../../shared/native-chat/tools/native-chat-tool-output'
 import { useNativeChatVisualOwner } from '@/components/native-chat/media/visuals/native-chat-visual-owner'
+import { diffFromText } from '../../../../../../shared/native-chat/tools/native-chat-diff'
+import { NativeChatDiffView } from '../diffs/NativeChatDiffView'
+import { NativeChatHighlightedCode } from '../../markdown/code/NativeChatHighlightedCode'
 
 /** Read full output from its owning host on request; keep expansion state independent of live revisions. */
 export function NativeChatToolOutput({
@@ -41,6 +44,15 @@ export function NativeChatToolOutput({
   const failed = current?.failed === true
   const clipped = isNativeChatToolOutputClipped(body, { expanded, fullLoaded: Boolean(full) })
   const partial = useMemo(() => (full ? nativeChatToolOutputPartialSizes(full) : null), [full])
+  const visible = full ? full.head : expanded ? body.output : truncateToolDetail(body.output)
+  const isPatch = /(?:^|\n)(?:diff --git |@@ -\d)/.test(visible)
+  const diff = useMemo(
+    () =>
+      isPatch && visible.length <= 32_000 && visible.split('\n').length <= 512
+        ? diffFromText(visible, 512)
+        : null,
+    [isPatch, visible]
+  )
 
   const showFull = async (): Promise<void> => {
     const itemId = body.fullOutputItemId
@@ -73,15 +85,19 @@ export function NativeChatToolOutput({
 
   return (
     <div className="space-y-1">
-      <pre
-        data-native-chat-code-content
-        className={cn(
-          'max-h-64 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-chat-code-border bg-chat-code-surface p-2 font-mono text-chat-code scrollbar-sleek',
-          body.isError ? 'text-destructive' : 'text-chat-foreground'
-        )}
-      >
-        {full ? full.head : expanded ? body.output : truncateToolDetail(body.output)}
-      </pre>
+      {diff ? (
+        <NativeChatDiffView lines={diff} />
+      ) : (
+        <pre
+          data-native-chat-code-content
+          className={cn(
+            'max-h-64 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-chat-code-border bg-chat-code-surface p-2 font-mono text-chat-code scrollbar-sleek',
+            body.isError ? 'text-destructive' : 'text-chat-foreground'
+          )}
+        >
+          {isPatch ? <NativeChatHighlightedCode code={visible} language="diff" /> : visible}
+        </pre>
+      )}
       {partial ? (
         <p className="text-xs text-chat-foreground-faint">
           {t(

@@ -22,8 +22,14 @@ function formatting(theme: 'light' | 'dark', fontStyle: number): TokenStyle {
   }
 }
 
-function tokenStyle(token: SyntaxToken): TokenStyle {
-  const colors: TokenStyle = { '--syntax-light': token.light, '--syntax-dark': token.dark }
+function tokenStyle(token: SyntaxToken, diff: boolean): TokenStyle {
+  const colors: TokenStyle = {
+    '--syntax-light':
+      diff && token.light
+        ? `color-mix(in srgb, ${token.light} 82%, var(--chat-foreground-strong))`
+        : token.light,
+    '--syntax-dark': token.dark
+  }
   return token.lightFontStyle || token.darkFontStyle
     ? {
         ...colors,
@@ -33,7 +39,15 @@ function tokenStyle(token: SyntaxToken): TokenStyle {
     : colors
 }
 
-const HighlightedLine = memo(function HighlightedLine({ line }: { line: SyntaxLine }) {
+export const NativeChatHighlightedLine = memo(function NativeChatHighlightedLine({
+  line,
+  includeEnding = true,
+  diff = false
+}: {
+  line: SyntaxLine
+  includeEnding?: boolean
+  diff?: boolean
+}) {
   return (
     <>
       {line.tokens.map((token) =>
@@ -46,7 +60,7 @@ const HighlightedLine = memo(function HighlightedLine({ line }: { line: SyntaxLi
                 ? FORMATTED_TOKEN_CLASS
                 : COLORED_TOKEN_CLASS
             }
-            style={tokenStyle(token)}
+            style={tokenStyle(token, diff)}
           >
             {token.content}
           </span>
@@ -54,7 +68,7 @@ const HighlightedLine = memo(function HighlightedLine({ line }: { line: SyntaxLi
           token.content
         )
       )}
-      {line.ending}
+      {includeEnding ? line.ending : null}
     </>
   )
 })
@@ -74,7 +88,7 @@ export const NativeChatHighlightedCode = memo(function NativeChatHighlightedCode
   return (
     <>
       {progress.lines.map((line) => (
-        <HighlightedLine key={line.start} line={line} />
+        <NativeChatHighlightedLine key={line.start} line={line} />
       ))}
       {code.slice(progress.highlightedLength)}
     </>

@@ -25,6 +25,14 @@ Only saved history can be reloaded. An unsaved streaming fragment may appear aft
 
 ## Windows download
 
+Tool output containing a unified patch now uses the native diff display rather
+than a plain output block. Inline diffs and file edit cards share the chat's syntax
+highlighter, with separate old/new text and the existing addition/removal colors.
+Unknown file languages keep readable plain text. Large full-output payloads retain
+their full text, with bounded syntax highlighting.
+
+The native Trello board and AI workflow are described in [native-trello-workflow.md](native-trello-workflow.md).
+
 The **Native chat fork (Windows)** GitHub Actions workflow builds an unsigned Windows x64 ZIP, available as the `orca-sky-windows` artifact after a successful run. Extract it and open `Orca.exe`. The package is named **Orca Sky**, uses a separate application profile, and points its updater at this fork. Your official Orca installation and its project setup stay in their own profile.
 
 ## Build locally
