@@ -77,6 +77,16 @@ it('keeps saved folder mappings when Codex migrates a project to a new ID', () =
   )
 })
 
+it('maps an unassigned Codex chat recorded with a Windows long-path prefix', () => {
+  expect(
+    mappedSidebarChatWorkspace(
+      session({ cwd: '\\\\?\\F:\\Work\\Scripts\\sky_jobs' }),
+      mappings,
+      structure
+    )
+  ).toBe('scripts')
+})
+
 it('matches local Claude folders by path segment without capturing sibling folders, other hosts or subagents', () => {
   expect(mappedSidebarChatWorkspace(session({ agent: 'claude' }), mappings, structure)).toBe(
     'scripts'

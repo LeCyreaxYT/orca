@@ -2,6 +2,7 @@ import type { AiVaultSession } from './ai-vault/contracts/ai-vault-types'
 import type { CodexProjectStructure } from './ai-vault/contracts/codex-project-structure'
 import type { SidebarChatGroupsByWorktree } from './sidebar-chat-groups'
 import { isPathInsideOrEqual, normalizeRuntimePathForComparison } from './cross-platform-path'
+import { stripWin32LongPathPrefix } from './windows-path-access'
 
 export function sidebarHistoryChatId(
   session: Pick<AiVaultSession, 'executionHostId' | 'agent' | 'sessionId'>
@@ -56,8 +57,12 @@ export function mappedSidebarChatWorkspace(
         continue
       }
       const paths = [session.cwd, ...(session.cwdAliases ?? [])]
-      const sourcePath = project?.paths[0] ?? source.path
-      if (paths.some((path) => path && isPathInsideOrEqual(sourcePath, path))) {
+      const sourcePath = stripWin32LongPathPrefix(project?.paths[0] ?? source.path)
+      if (
+        paths.some(
+          (path) => path && isPathInsideOrEqual(sourcePath, stripWin32LongPathPrefix(path))
+        )
+      ) {
         const length = normalizeRuntimePathForComparison(sourcePath).length
         if (!best || length > best.length) {
           best = { workspaceId, length }
