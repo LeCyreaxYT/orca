@@ -5,6 +5,7 @@ const TOP_LEVEL_VIEW_LOOKUP: Record<TopLevelView, true> = {
   terminal: true,
   settings: true,
   tasks: true,
+  trello: true,
   activity: true,
   automations: true,
   space: true,

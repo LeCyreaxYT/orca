@@ -122,6 +122,7 @@ export type TopLevelView =
   | 'terminal'
   | 'settings'
   | 'tasks'
+  | 'trello'
   | 'activity'
   | 'automations'
   | 'space'

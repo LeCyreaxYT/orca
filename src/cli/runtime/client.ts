@@ -40,7 +40,8 @@ import {
 import { RemoteRuntimeCompatGate } from './remote-runtime-compat-gate'
 import {
   createAgentLaunchCallerEvidence,
-  createOrchestrationCompatibilityEnvelope
+  createOrchestrationCompatibilityEnvelope,
+  SESSION_CALLER_METHODS
 } from './orchestration-compatibility-envelope'
 import { getTimeoutMsParam, isWaitingCheck } from './runtime-request-timeout'
 import {
@@ -55,8 +56,6 @@ import {
 } from './orchestration-recovery-command'
 
 const LONG_POLL_CLIENT_GRACE_MS = 10_000
-// The host records the launched agent in the caller's chat; older hosts ignore the evidence.
-const AGENT_LAUNCH_METHODS: ReadonlySet<string> = new Set(['agent.launch', 'agent.launchReplay'])
 
 const loadWebSocketTransport = async () => await import('./websocket-transport.js')
 
@@ -145,7 +144,7 @@ export class RuntimeClient {
           compatibilityInvocationId:
             orchestrationRequestId ?? this.orchestrationCompatibility.compatibilityInvocationId
         }
-      : AGENT_LAUNCH_METHODS.has(method) && !this.remote && this.agentLaunchCaller
+      : SESSION_CALLER_METHODS.has(method) && !this.remote && this.agentLaunchCaller
         ? { orchestrationCompatibilityEvidence: this.agentLaunchCaller }
         : {}
     const envelope = {

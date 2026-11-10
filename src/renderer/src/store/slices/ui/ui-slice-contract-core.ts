@@ -117,6 +117,7 @@ export type UiViewHistory =
   | 'terminal'
   | 'settings'
   | 'tasks'
+  | 'trello'
   | 'activity'
   | 'automations'
   | 'space'

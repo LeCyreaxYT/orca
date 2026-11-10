@@ -114,6 +114,7 @@ export const TopLevelViewSchema = z.enum([
   'terminal',
   'settings',
   'tasks',
+  'trello',
   'activity',
   'automations',
   'space',

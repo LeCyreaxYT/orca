@@ -15,22 +15,26 @@ const collapsibleTriggerVariants = cva('', {
   variants: {
     variant: {
       default: '',
+      counter:
+        'flex items-center gap-1 rounded px-1.5 py-1 text-xs tabular-nums text-muted-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
       row: 'group flex w-full cursor-pointer items-center justify-between gap-4 rounded-md bg-transparent py-2 text-left text-sm font-medium outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:hover:bg-accent/50'
-    }
+    },
+    tone: { default: '', success: 'bg-status-success-background text-status-success' }
   },
-  defaultVariants: { variant: 'default' }
+  defaultVariants: { variant: 'default', tone: 'default' }
 })
 
 function CollapsibleTrigger({
   className,
   variant,
+  tone,
   ...props
 }: React.ComponentProps<typeof CollapsiblePrimitive.Trigger> &
   VariantProps<typeof collapsibleTriggerVariants>): React.JSX.Element {
   return (
     <CollapsiblePrimitive.Trigger
       data-slot="collapsible-trigger"
-      className={cn(collapsibleTriggerVariants({ variant }), className)}
+      className={cn(collapsibleTriggerVariants({ variant, tone }), className)}
       {...props}
     />
   )

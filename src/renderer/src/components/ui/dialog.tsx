@@ -50,6 +50,8 @@ const dialogContentSurfaceVariants = cva('', {
   variants: {
     surface: {
       default: '',
+      /** Opaque reading and editing surfaces for longer documents and forms. */
+      solid: 'bg-background',
       /** The tinted, edge-to-edge panel of the two-column feature tip dialogs. */
       'feature-tip':
         'gap-0 bg-[color-mix(in_srgb,var(--foreground)_8%,var(--background))] p-0 dark:bg-[color-mix(in_srgb,var(--foreground)_16%,var(--background))]',

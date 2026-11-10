@@ -711,6 +711,20 @@ import {
   TerminalUnsubscribe,
   TerminalUpdateViewport
 } from './terminal-viewport-schemas-params'
+import {
+  TrelloBindParams,
+  TrelloBoardParams,
+  TrelloCardParams,
+  TrelloCheckParams,
+  TrelloCommentsParams,
+  TrelloConfigureParams,
+  TrelloCreateParams,
+  TrelloLinkParams,
+  TrelloOperationParams,
+  TrelloPrepareParams,
+  TrelloProgressParams,
+  TrelloRunParams
+} from './trello-params'
 import { UpdaterCheckParams } from './updater-params'
 import {
   UsageCredentialApiKeyParams,
@@ -1593,6 +1607,26 @@ export const RPC_PARAMS_BY_METHOD = {
   'terminalDaemon.restartSevered': TerminalDaemonRestartSeveredParams,
   'terminalDaemon.setLimit': TerminalLimitUpdateParams,
   'terminalDaemon.severedStatus': null,
+  'trello.accept': TrelloRunParams,
+  'trello.bind': TrelloBindParams,
+  'trello.board': TrelloBoardParams,
+  'trello.boards': null,
+  'trello.cancelConnect': null,
+  'trello.card': TrelloCardParams,
+  'trello.check': TrelloCheckParams,
+  'trello.comments': TrelloCommentsParams,
+  'trello.configure': TrelloConfigureParams,
+  'trello.connect': null,
+  'trello.create': TrelloCreateParams,
+  'trello.disconnect': null,
+  'trello.link': TrelloLinkParams,
+  'trello.operation': TrelloOperationParams,
+  'trello.prepare': TrelloPrepareParams,
+  'trello.progress': TrelloProgressParams,
+  'trello.review': TrelloProgressParams,
+  'trello.start': TrelloRunParams,
+  'trello.status': null,
+  'trello.watch': null,
   'ui.get': null,
   'ui.getJiraQuickFilters': null,
   'ui.getJiraSavedFilters': null,

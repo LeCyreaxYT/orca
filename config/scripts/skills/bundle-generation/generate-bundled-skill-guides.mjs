@@ -22,6 +22,7 @@ const CANONICAL_GUIDE_NAMES = [
   'orca-emulator-android',
   'orca-jira',
   'orca-linear',
+  'orca-trello',
   'orca-per-workspace-env',
   'orca-plugin-authoring',
   'orchestration'
@@ -37,6 +38,7 @@ const GUIDE_ALIASES = {
   'orca-emulator-android': [],
   'orca-jira': [],
   'orca-linear': [],
+  'orca-trello': [],
   'orca-per-workspace-env': [],
   'orca-plugin-authoring': [],
   orchestration: []
@@ -53,6 +55,7 @@ const STUB_TOPICS = [
   'orca-emulator-android',
   'orca-jira',
   'orca-linear',
+  'orca-trello',
   'orca-per-workspace-env',
   'orca-plugin-authoring',
   'orchestration'

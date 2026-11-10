@@ -40,7 +40,7 @@ jobs:
       - uses: ./.github/actions/install-mobile-dependencies
       - name: Typecheck
         run: pnpm tc
-      - name: Verify native chats and sidebar groups
+      - name: Verify native chats, sidebar groups and Trello workflow
         run: >-
           pnpm test
           src/main/native-chat/agent-session-wire/acquisition/structured-agent-session-history-refresh.test.ts
@@ -51,6 +51,12 @@ jobs:
           src/shared/sidebar-chat-groups.test.ts
           src/renderer/src/components/sidebar/workspace-card/activity/sidebar-chat-group-model.test.ts
           src/renderer/src/web/web-preload-api-ui-pairing-local-fields.test.ts
+          src/main/trello/trello-service.test.ts
+          src/main/trello/trello-connection.test.ts
+          src/main/trello/trello-read.test.ts
+          src/main/runtime/rpc/methods/integrations/trello.test.ts
+          src/renderer/src/components/native-chat/tools/lines/NativeChatToolOutput.test.tsx
+          src/renderer/src/components/native-chat/tools/diffs/native-chat-turn-diffs.test.ts
           --maxWorkers=2
       - name: Build app
         run: pnpm build:release

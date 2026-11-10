@@ -17,6 +17,13 @@ export function createOrchestrationCompatibilityEnvelope(
 
 /** The chat an agent launch came from, so the host can show the launched agent there.
  *  Only a same-host session can be named: host-stamped (WSL) environments send nothing. */
+// Host-owned actions attach to the requesting native chat using admitted session evidence.
+export const SESSION_CALLER_METHODS: ReadonlySet<string> = new Set([
+  'agent.launch',
+  'agent.launchReplay',
+  'trello.link'
+])
+
 export function createAgentLaunchCallerEvidence(
   env: NodeJS.ProcessEnv
 ): RuntimeOrchestrationEnvelope['orchestrationCompatibilityEvidence'] {

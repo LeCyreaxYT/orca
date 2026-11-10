@@ -162,6 +162,22 @@
       ]
     },
     {
+      "name": "orca-trello",
+      "sourcePath": "skills/orca-trello",
+      "packageDigest": "91a5c542d918f569fb2c1411beffaa708c061346b41c53cb2134465962a51783",
+      "files": [
+        {
+          "path": "SKILL.md",
+          "size": 1959,
+          "executable": false,
+          "classification": "text",
+          "exactSha256": "9193f3542ac195f0bc44aa72f8d559cafb79dfb8b6bbc0b58ce0c59a35ae44e4",
+          "textNormalizedSha256": "9193f3542ac195f0bc44aa72f8d559cafb79dfb8b6bbc0b58ce0c59a35ae44e4",
+          "identitySha256": "9193f3542ac195f0bc44aa72f8d559cafb79dfb8b6bbc0b58ce0c59a35ae44e4"
+        }
+      ]
+    },
+    {
       "name": "orchestration",
       "sourcePath": "skills/orchestration",
       "packageDigest": "ff539effe2690ab15d2232ba0c4e55b7579ff17324185a8b07f4108bfb1ea4c9",
