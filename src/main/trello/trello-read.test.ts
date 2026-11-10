@@ -2,12 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { TrelloRead } from './trello-read'
 
 describe('Trello board pagination', () => {
-  it('merges repeated lists across card pages without duplicate columns or cards', async () => {
+  it('uses parent board and list IDs while merging card pages without duplicates', async () => {
     const card = (id: string) => ({
       id,
       name: id,
-      boardId: 'board',
-      listId: 'planned',
+      boardId: null,
+      listId: null,
       url: 'https://trello.com/c/Example1'
     })
     const read = new TrelloRead(async (tool, args) => {
@@ -31,6 +31,7 @@ describe('Trello board pagination', () => {
     const board = await read.board('board')
     expect(board.lists.map((list) => list.id)).toEqual(['planned', 'review'])
     expect(board.cards.map((card) => card.id)).toEqual(['a', 'b'])
+    expect(board.cards[0]).toMatchObject({ boardId: 'board', listId: 'planned' })
   })
 
   it('refuses an incomplete page instead of presenting it as the complete board', async () => {

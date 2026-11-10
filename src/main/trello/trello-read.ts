@@ -25,6 +25,7 @@ const Card = IdName.extend({
   comments: z.array(z.object({ id: z.string(), text: z.string() })).default([]),
   commentsHasMore: z.boolean().default(false)
 })
+const ListedCard = Card.omit({ boardId: true, listId: true })
 const Page = z.object({
   nextCursor: z.string().nullable().optional(),
   hasMore: z.boolean().optional(),
@@ -120,7 +121,7 @@ export class TrelloRead {
           ...(cursor ? { cursor } : {})
         }),
       (raw) =>
-        z.object({ lists: z.array(IdName.extend({ cards: z.array(Card) })) }).parse(raw).lists
+        z.object({ lists: z.array(IdName.extend({ cards: z.array(ListedCard) })) }).parse(raw).lists
     )
     const merged = new Map<
       string,
@@ -133,7 +134,7 @@ export class TrelloRead {
         merged.set(list.id, target)
       }
       for (const card of list.cards) {
-        target.cards.set(card.id, summary(card))
+        target.cards.set(card.id, summary({ ...card, boardId: board.id, listId: list.id }))
       }
     }
     return {
