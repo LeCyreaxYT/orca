@@ -1,3 +1,4 @@
+import { nativeWindowsMcpClaudeOptions } from '../../../work-plans/native-windows-mcp-launch'
 import type { ClaudeAccountRecipe } from '../../../../shared/agent-session/lifecycle/agent-session-acquired-account'
 import { prepareClaudeLaunchAccount } from '../../claude-launch-account'
 import { assertStructuredAgentResolutionCurrent } from '../../../native-chat/structured-agent-command-resolution'
@@ -65,6 +66,7 @@ export type ClaudeStructuredSdkOptions = Pick<
   | 'supportedDialogKinds'
   | 'additionalDirectories'
   | 'plugins'
+  | 'mcpServers'
   | 'model'
   | 'effort'
   | 'allowDangerouslySkipPermissions'
@@ -314,7 +316,10 @@ export function claudeStructuredLaunchPart(
       env,
       inheritedEnvToDelete: [],
       // The agent runtime follows Orca's CLI directory on PATH so another orca cannot shadow it.
-      cliRuntimeCommand: command
+      cliRuntimeCommand: command,
+      configureAfterSeal: (launch, sealedEnv) => {
+        return { ...launch, options: nativeWindowsMcpClaudeOptions(launch.options, sealedEnv) }
+      }
     }
   }
 }

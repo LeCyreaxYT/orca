@@ -20892,6 +20892,43 @@
           "action": "Bereich teilen"
         }
       }
+    },
+    "workPlan": {
+      "title": "Planung & Ziele",
+      "description": "Ziel, Arbeitsschritte und Nachweise für diesen Chat.",
+      "empty": "Lege das Ergebnis und seine Prüfung fest. Die KI kann den Plan auch selbst im Chat anlegen.",
+      "objective": "Ziel",
+      "criteria": "Abnahmekriterien",
+      "steps": "Plan",
+      "criteriaPlaceholder": "Ein prüfbares Ergebnis pro Zeile",
+      "stepsPlaceholder": "Ein Arbeitsschritt pro Zeile",
+      "create": "Plan anlegen",
+      "planning": "In Planung",
+      "working": "In Arbeit",
+      "paused": "Pausiert",
+      "waiting": "Wartet auf deine Rückmeldung",
+      "review": "Bereit für deine Abnahme",
+      "accepted": "Von dir abgenommen",
+      "stopUnconfirmed": "Die Ziel-Pause konnte nicht bestätigt werden. Prüfe den Chat und stoppe das laufende Ziel vor dem Fortsetzen.",
+      "checked": "Geprüft",
+      "pending": "Offen",
+      "failed": "Fehlgeschlagen",
+      "blocked": "Blockiert",
+      "strategy": "Aktueller Ansatz",
+      "acceptanceHint": "Die KI hält Prüfungen fest und bereitet die Abnahme vor. Die finale Freigabe gibst nur du.",
+      "pauseReason": "Von dir pausiert",
+      "pause": "Ziel pausieren",
+      "start": "Mit KI starten",
+      "reviewReason": "Geprüfte Ergebnisse gemeinsam im Chat durchgehen.",
+      "requestReview": "Ergebnisse ansehen",
+      "accept": "Final abnehmen",
+      "feedback": "Rückmeldung oder fehlende Angaben",
+      "rework": "Mit dieser Rückmeldung weiterarbeiten",
+      "reload": "Plan neu laden",
+      "loading": "Plan wird geladen…"
+    },
+    "sidebar": {
+      "advanced": "Erweitert"
     }
   },
   "dashboardPopout": {

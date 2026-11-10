@@ -21677,6 +21677,43 @@
         "reopenClosedTab": "Reopen closed tab",
         "terminal": "Terminal"
       }
+    },
+    "workPlan": {
+      "title": "Planning & goals",
+      "description": "Goal, work steps and evidence for this chat.",
+      "empty": "Define the result and how to verify it. The AI can also create this plan while you work in the chat.",
+      "objective": "Goal",
+      "criteria": "Acceptance criteria",
+      "steps": "Plan",
+      "criteriaPlaceholder": "One observable result per line",
+      "stepsPlaceholder": "One work step per line",
+      "create": "Create plan",
+      "planning": "Planning",
+      "working": "In progress",
+      "paused": "Paused",
+      "waiting": "Waiting for your input",
+      "review": "Ready for your review",
+      "accepted": "Accepted by you",
+      "stopUnconfirmed": "Automatic goal pause could not be confirmed. Check the native chat and stop its running goal before continuing.",
+      "checked": "Verified",
+      "pending": "Open",
+      "failed": "Failed",
+      "blocked": "Blocked",
+      "strategy": "Current approach",
+      "acceptanceHint": "The AI records checks and prepares review. Only you give final acceptance.",
+      "pauseReason": "Paused by the user",
+      "pause": "Pause goal",
+      "start": "Start with AI",
+      "reviewReason": "Review the verified results together in the chat.",
+      "requestReview": "Review results",
+      "accept": "Give final acceptance",
+      "feedback": "Feedback or missing input",
+      "rework": "Continue with this feedback",
+      "reload": "Reload plan",
+      "loading": "Loading plan…"
+    },
+    "sidebar": {
+      "advanced": "Advanced"
     }
   },
   "dashboardPopout": {

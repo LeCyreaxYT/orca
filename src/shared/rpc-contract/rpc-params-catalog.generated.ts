@@ -780,6 +780,11 @@ import {
   SkillUploadChunkRequestSchema,
   SkillUploadCommitRequestSchema
 } from '../skill-upload-session-contract'
+import {
+  WorkPlanReadParams,
+  WorkPlanRunParams,
+  WorkPlanUpdateParams
+} from '../work-plans/work-plan'
 
 // Why: the host parses params with these schemas, so a client that matches this map
 // matches the dispatcher. Clients must import it for types only — parsing a params
@@ -1639,6 +1644,10 @@ export const RPC_PARAMS_BY_METHOD = {
   'updater.download': null,
   'updater.getStatus': null,
   'updater.install': null,
+  'workPlan.read': WorkPlanReadParams,
+  'workPlan.run': WorkPlanRunParams,
+  'workPlan.update': WorkPlanUpdateParams,
+  'workPlan.watch': WorkPlanReadParams,
   'workspacePorts.kill': WorkspacePortKillParams,
   'workspacePorts.killHost': WorkspacePortKillHostParams,
   'workspacePorts.probePage': WorkspacePortProbePageParams,

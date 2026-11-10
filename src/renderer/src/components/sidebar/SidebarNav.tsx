@@ -1,5 +1,13 @@
 import React from 'react'
-import { BookOpen, CalendarClock, EyeOff, Files, Search, Smartphone } from 'lucide-react'
+import {
+  BookOpen,
+  CalendarClock,
+  ChevronRight,
+  EyeOff,
+  Files,
+  Search,
+  Smartphone
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAppStore } from '@/store'
 import { cn } from '@/lib/utils'
@@ -17,6 +25,8 @@ import { HideSidebarMenu } from './sidebar-nav-controls'
 import { useTranslate } from '@/i18n/use-translate'
 import { lazyWithRetry } from '@/lib/lazy-with-retry'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible'
+import { SidebarWorkPlanEntry } from '../work-plans/SidebarWorkPlanEntry'
 
 export function shouldShowMobileButton(
   settings: Partial<Pick<GlobalSettings, 'showMobileButton'>> | null | undefined
@@ -73,6 +83,13 @@ const SidebarNav = React.memo(function SidebarNav() {
   const artifactsActive = activeView === 'artifacts'
   const skillsActive = activeView === 'skills'
   const mobileOnboardingBadge = useMobileSidebarOnboardingBadge(showMobileButton)
+  const [advancedOpen, setAdvancedOpen] = React.useState(false)
+  const advancedActive = automationsActive || mobileActive || artifactsActive || skillsActive
+  React.useEffect(() => {
+    if (advancedActive) {
+      setAdvancedOpen(true)
+    }
+  }, [advancedActive])
   const hideAutomationsButton = React.useCallback(() => {
     void updateSettings({ showAutomationsButton: false })
   }, [updateSettings])
@@ -123,168 +140,188 @@ const SidebarNav = React.memo(function SidebarNav() {
       </button>
       <SetupGuideSidebarEntry />
       <SidebarTaskNavButton />
+      <SidebarWorkPlanEntry />
       <SidebarTrelloButton />
-      {showArtifactsButton ? (
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <button
-              type="button"
-              onClick={openArtifactsPage}
-              aria-current={artifactsActive ? 'page' : undefined}
-              className={cn(
-                'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] font-medium tracking-tight transition-colors',
-                artifactsActive
-                  ? 'bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground'
-                  : 'text-worktree-sidebar-foreground/60 hover:bg-worktree-sidebar-foreground/8'
-              )}
-            >
-              <Files
-                className={cn(
-                  'size-4 shrink-0',
-                  !artifactsActive && 'text-worktree-sidebar-foreground/30'
-                )}
-                strokeWidth={artifactsActive ? 2.25 : 1.75}
-              />
-              <span className="flex-1">
-                {t('auto.components.sidebar.SidebarNav.artifacts', 'Artifacts')}
-              </span>
-            </button>
-          </ContextMenuTrigger>
-          <HideSidebarMenu onHide={hideArtifactsButton} />
-        </ContextMenu>
-      ) : null}
-      {showSkillsButton ? (
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <button
-              type="button"
-              onClick={openSkillsPage}
-              aria-current={skillsActive ? 'page' : undefined}
-              className={cn(
-                'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] font-medium tracking-tight transition-colors',
-                skillsActive
-                  ? 'bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground'
-                  : 'text-worktree-sidebar-foreground/60 hover:bg-worktree-sidebar-foreground/8'
-              )}
-            >
-              <BookOpen
-                className={cn(
-                  'size-4 shrink-0',
-                  !skillsActive && 'text-worktree-sidebar-foreground/30'
-                )}
-                strokeWidth={skillsActive ? 2.25 : 1.75}
-              />
-              <span className="flex-1">
-                {t('auto.components.sidebar.SidebarNav.skills', 'Skills')}
-              </span>
-            </button>
-          </ContextMenuTrigger>
-          <HideSidebarMenu onHide={hideSkillsButton} />
-        </ContextMenu>
-      ) : null}
-      {showAutomationsButton ? (
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <button
-              type="button"
-              onClick={openAutomationsPage}
-              aria-current={automationsActive ? 'page' : undefined}
-              className={cn(
-                'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] font-medium tracking-tight transition-colors',
-                automationsActive
-                  ? 'bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground'
-                  : 'text-worktree-sidebar-foreground/60 hover:bg-worktree-sidebar-foreground/8'
-              )}
-            >
-              <CalendarClock
-                className={cn(
-                  'size-4 shrink-0',
-                  !automationsActive && 'text-worktree-sidebar-foreground/30'
-                )}
-                strokeWidth={automationsActive ? 2.25 : 1.75}
-              />
-              <span className="flex-1">
-                {t('auto.components.sidebar.SidebarNav.f323383e9a', 'Automations')}
-              </span>
-            </button>
-          </ContextMenuTrigger>
-          <HideSidebarMenu onHide={hideAutomationsButton} />
-        </ContextMenu>
-      ) : null}
-      {showAgentDashboardButton ? (
-        <React.Suspense fallback={null}>
-          <AgentDashboardSidebarEntry />
-        </React.Suspense>
-      ) : null}
-      {showMobileButton ? (
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <div
-              className={cn(
-                'group flex w-full items-center rounded-md text-[13px] font-medium tracking-tight transition-colors',
-                mobileActive
-                  ? 'bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground'
-                  : 'text-worktree-sidebar-foreground/60 hover:bg-worktree-sidebar-foreground/8'
-              )}
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  mobileOnboardingBadge.dismiss()
-                  openMobilePage()
-                }}
-                aria-current={mobileActive ? 'page' : undefined}
-                className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-left"
-              >
-                <Smartphone
-                  className={cn(
-                    'size-4 shrink-0',
-                    !mobileActive && 'text-worktree-sidebar-foreground/30'
-                  )}
-                  strokeWidth={mobileActive ? 2.25 : 1.75}
-                />
-                <span className="min-w-0 flex-1 truncate">
-                  {t('auto.components.sidebar.SidebarNav.1b5c41caee', 'Orca Mobile')}
-                </span>
-                {mobileOnboardingBadge.visible ? (
-                  <span className="shrink-0 rounded-full bg-primary px-1.5 py-px text-[10px] font-semibold text-primary-foreground">
-                    {t('auto.components.sidebar.SidebarNav.c86d83b5c3', 'New')}
-                  </span>
-                ) : null}
-              </button>
-              {mobileOnboardingBadge.hasPairedDevice ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
+      {showArtifactsButton ||
+      showSkillsButton ||
+      showAutomationsButton ||
+      showAgentDashboardButton ||
+      showMobileButton ? (
+        <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+          <CollapsibleTrigger variant="sidebar">
+            <ChevronRight className="size-4 shrink-0 transition-transform group-data-[state=open]:rotate-90 motion-reduce:transition-none" />
+            <span>{t('components.sidebar.advanced', 'Advanced')}</span>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="space-y-0.5 pl-3">
+              {showArtifactsButton ? (
+                <ContextMenu>
+                  <ContextMenuTrigger asChild>
+                    <button
                       type="button"
-                      variant="ghost"
-                      size="icon-xs"
+                      onClick={openArtifactsPage}
+                      aria-current={artifactsActive ? 'page' : undefined}
                       className={cn(
-                        'mr-1 text-worktree-sidebar-foreground/55 hover:bg-worktree-sidebar-foreground/10 hover:text-worktree-sidebar-foreground',
-                        mobileActive &&
-                          'text-worktree-sidebar-accent-foreground/70 hover:text-worktree-sidebar-accent-foreground'
-                      )}
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        hideMobileButton()
-                      }}
-                      aria-label={t(
-                        'auto.components.sidebar.SidebarNav.d599269755',
-                        'Hide from sidebar'
+                        'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] font-medium tracking-tight transition-colors',
+                        artifactsActive
+                          ? 'bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground'
+                          : 'text-worktree-sidebar-foreground/60 hover:bg-worktree-sidebar-foreground/8'
                       )}
                     >
-                      <EyeOff className="size-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" sideOffset={4}>
-                    {t('auto.components.sidebar.SidebarNav.d599269755', 'Hide from sidebar')}
-                  </TooltipContent>
-                </Tooltip>
+                      <Files
+                        className={cn(
+                          'size-4 shrink-0',
+                          !artifactsActive && 'text-worktree-sidebar-foreground/30'
+                        )}
+                        strokeWidth={artifactsActive ? 2.25 : 1.75}
+                      />
+                      <span className="flex-1">
+                        {t('auto.components.sidebar.SidebarNav.artifacts', 'Artifacts')}
+                      </span>
+                    </button>
+                  </ContextMenuTrigger>
+                  <HideSidebarMenu onHide={hideArtifactsButton} />
+                </ContextMenu>
+              ) : null}
+              {showSkillsButton ? (
+                <ContextMenu>
+                  <ContextMenuTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={openSkillsPage}
+                      aria-current={skillsActive ? 'page' : undefined}
+                      className={cn(
+                        'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] font-medium tracking-tight transition-colors',
+                        skillsActive
+                          ? 'bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground'
+                          : 'text-worktree-sidebar-foreground/60 hover:bg-worktree-sidebar-foreground/8'
+                      )}
+                    >
+                      <BookOpen
+                        className={cn(
+                          'size-4 shrink-0',
+                          !skillsActive && 'text-worktree-sidebar-foreground/30'
+                        )}
+                        strokeWidth={skillsActive ? 2.25 : 1.75}
+                      />
+                      <span className="flex-1">
+                        {t('auto.components.sidebar.SidebarNav.skills', 'Skills')}
+                      </span>
+                    </button>
+                  </ContextMenuTrigger>
+                  <HideSidebarMenu onHide={hideSkillsButton} />
+                </ContextMenu>
+              ) : null}
+              {showAutomationsButton ? (
+                <ContextMenu>
+                  <ContextMenuTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={openAutomationsPage}
+                      aria-current={automationsActive ? 'page' : undefined}
+                      className={cn(
+                        'flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] font-medium tracking-tight transition-colors',
+                        automationsActive
+                          ? 'bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground'
+                          : 'text-worktree-sidebar-foreground/60 hover:bg-worktree-sidebar-foreground/8'
+                      )}
+                    >
+                      <CalendarClock
+                        className={cn(
+                          'size-4 shrink-0',
+                          !automationsActive && 'text-worktree-sidebar-foreground/30'
+                        )}
+                        strokeWidth={automationsActive ? 2.25 : 1.75}
+                      />
+                      <span className="flex-1">
+                        {t('auto.components.sidebar.SidebarNav.f323383e9a', 'Automations')}
+                      </span>
+                    </button>
+                  </ContextMenuTrigger>
+                  <HideSidebarMenu onHide={hideAutomationsButton} />
+                </ContextMenu>
+              ) : null}
+              {showAgentDashboardButton ? (
+                <React.Suspense fallback={null}>
+                  <AgentDashboardSidebarEntry />
+                </React.Suspense>
+              ) : null}
+              {showMobileButton ? (
+                <ContextMenu>
+                  <ContextMenuTrigger asChild>
+                    <div
+                      className={cn(
+                        'group flex w-full items-center rounded-md text-[13px] font-medium tracking-tight transition-colors',
+                        mobileActive
+                          ? 'bg-worktree-sidebar-accent text-worktree-sidebar-accent-foreground'
+                          : 'text-worktree-sidebar-foreground/60 hover:bg-worktree-sidebar-foreground/8'
+                      )}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          mobileOnboardingBadge.dismiss()
+                          openMobilePage()
+                        }}
+                        aria-current={mobileActive ? 'page' : undefined}
+                        className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-left"
+                      >
+                        <Smartphone
+                          className={cn(
+                            'size-4 shrink-0',
+                            !mobileActive && 'text-worktree-sidebar-foreground/30'
+                          )}
+                          strokeWidth={mobileActive ? 2.25 : 1.75}
+                        />
+                        <span className="min-w-0 flex-1 truncate">
+                          {t('auto.components.sidebar.SidebarNav.1b5c41caee', 'Orca Mobile')}
+                        </span>
+                        {mobileOnboardingBadge.visible ? (
+                          <span className="shrink-0 rounded-full bg-primary px-1.5 py-px text-[10px] font-semibold text-primary-foreground">
+                            {t('auto.components.sidebar.SidebarNav.c86d83b5c3', 'New')}
+                          </span>
+                        ) : null}
+                      </button>
+                      {mobileOnboardingBadge.hasPairedDevice ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-xs"
+                              className={cn(
+                                'mr-1 text-worktree-sidebar-foreground/55 hover:bg-worktree-sidebar-foreground/10 hover:text-worktree-sidebar-foreground',
+                                mobileActive &&
+                                  'text-worktree-sidebar-accent-foreground/70 hover:text-worktree-sidebar-accent-foreground'
+                              )}
+                              onClick={(event) => {
+                                event.stopPropagation()
+                                hideMobileButton()
+                              }}
+                              aria-label={t(
+                                'auto.components.sidebar.SidebarNav.d599269755',
+                                'Hide from sidebar'
+                              )}
+                            >
+                              <EyeOff className="size-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" sideOffset={4}>
+                            {t(
+                              'auto.components.sidebar.SidebarNav.d599269755',
+                              'Hide from sidebar'
+                            )}
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : null}
+                    </div>
+                  </ContextMenuTrigger>
+                  <HideSidebarMenu onHide={hideMobileButton} />
+                </ContextMenu>
               ) : null}
             </div>
-          </ContextMenuTrigger>
-          <HideSidebarMenu onHide={hideMobileButton} />
-        </ContextMenu>
+          </CollapsibleContent>
+        </Collapsible>
       ) : null}
     </div>
   )

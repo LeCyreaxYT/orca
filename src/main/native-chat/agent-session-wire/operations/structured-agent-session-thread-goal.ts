@@ -1,3 +1,5 @@
+import { getWorkPlanStore } from '../../../work-plans/work-plan-store'
+import { hasAppEnvironment } from '../../../../shared/app-environment'
 import {
   refuse,
   type AgentSessionWireRefusal
@@ -63,6 +65,18 @@ export async function performThreadGoalChange(
     return goalsUnsupported()
   }
   const { change } = input
+  if (
+    hasAppEnvironment() &&
+    (change.kind === 'set' || (change.kind === 'status' && change.status === 'active'))
+  ) {
+    const plan = (await getWorkPlanStore()).read(ctx.sessionId)
+    if (plan && ['waiting', 'review', 'accepted', 'paused'].includes(plan.phase)) {
+      return refused(
+        'providerRejected',
+        'The work plan is paused or waiting for user review. Release it in Planning & goals before resuming the goal.'
+      )
+    }
+  }
   const captured =
     change.kind === 'set' || (change.kind === 'status' && change.status === 'active')
       ? captureStructuredExecutionOptions({

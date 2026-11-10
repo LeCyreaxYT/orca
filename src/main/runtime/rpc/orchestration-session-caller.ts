@@ -72,7 +72,11 @@ const NEEDS_RUNNING_AGENT: ReadonlySet<string> = new Set([
 
 /** Detect session evidence or a declared session caller synchronously so terminal calls avoid another async hop. */
 export function needsOrchestrationCallerResolution(request: RpcRequest): boolean {
-  if (!request.method.startsWith('orchestration.') && request.method !== 'trello.link') {
+  if (
+    !request.method.startsWith('orchestration.') &&
+    request.method !== 'trello.link' &&
+    !request.method.startsWith('workPlan.')
+  ) {
     return false
   }
   return (

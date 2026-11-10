@@ -21,47 +21,21 @@ export function SidebarHistoryChatRow({
 }) {
   const t = useTranslate()
   const [opening, setOpening] = useState(false)
-  const open = async () => {
+  const open = () => {
     if (opening) {
       return
     }
     setOpening(true)
-    try {
-      if (session.structuredSession) {
-        const target = structuredAgentSessionTargetForHost(session.executionHostId)
-        if (target) {
-          await activateAiVaultStructuredSession(session, undefined, target)
-          return
-        }
-      }
-      const state = useAppStore.getState()
-      const eligibility = resolveAiVaultSessionResumeInChatForWorkspace({
-        session,
-        resumeState: { blocked: false, worktreeId, usesSessionWorktree: true },
-        activeWorkspaceId: worktreeId,
-        targetState: state,
-        settings: state.settings
-      })
-      if (eligibility.available && (session.agent === 'codex' || session.agent === 'claude')) {
-        await resumeAiVaultSessionInNewChat(
-          session,
-          session.agent,
-          worktreeId,
-          newAgentLaunchRequestId()
-        )
-      } else {
-        toast.error(
-          t(
-            'sidebar.sessionDropUnavailable',
-            'This conversation cannot open here. Use its original workspace on the recording host.'
-          )
-        )
-      }
-    } catch {
-      toast.error(t('sidebar.chatSources.openFailed', 'Could not open this chat. Try again.'))
-    } finally {
-      setOpening(false)
-    }
+    void openSidebarHistoryChat({
+      session,
+      worktreeId,
+      setOpening,
+      unavailableMessage: t(
+        'sidebar.sessionDropUnavailable',
+        'This conversation cannot open here. Use its original workspace on the recording host.'
+      ),
+      failedMessage: t('sidebar.chatSources.openFailed', 'Could not open this chat. Try again.')
+    })
   }
   return (
     <div
@@ -88,4 +62,50 @@ export function SidebarHistoryChatRow({
       <span className="min-w-0 flex-1 truncate">{session.title}</span>
     </div>
   )
+}
+
+async function openSidebarHistoryChat({
+  session,
+  worktreeId,
+  setOpening,
+  unavailableMessage,
+  failedMessage
+}: {
+  session: AiVaultSession
+  worktreeId: string
+  setOpening: (opening: boolean) => void
+  unavailableMessage: string
+  failedMessage: string
+}) {
+  try {
+    if (session.structuredSession) {
+      const target = structuredAgentSessionTargetForHost(session.executionHostId)
+      if (target) {
+        await activateAiVaultStructuredSession(session, undefined, target)
+        return
+      }
+    }
+    const state = useAppStore.getState()
+    const eligibility = resolveAiVaultSessionResumeInChatForWorkspace({
+      session,
+      resumeState: { blocked: false, worktreeId, usesSessionWorktree: true },
+      activeWorkspaceId: worktreeId,
+      targetState: state,
+      settings: state.settings
+    })
+    if (eligibility.available && (session.agent === 'codex' || session.agent === 'claude')) {
+      await resumeAiVaultSessionInNewChat(
+        session,
+        session.agent,
+        worktreeId,
+        newAgentLaunchRequestId()
+      )
+    } else {
+      toast.error(unavailableMessage)
+    }
+  } catch {
+    toast.error(failedMessage)
+  } finally {
+    setOpening(false)
+  }
 }

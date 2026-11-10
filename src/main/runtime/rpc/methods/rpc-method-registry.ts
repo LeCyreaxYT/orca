@@ -40,6 +40,7 @@ import { LINEAR_METHODS } from './integrations/linear/linear'
 import { LINEAR_AGENT_ACCESS_METHODS } from './integrations/linear/linear-agent-access'
 import { JIRA_METHODS } from './integrations/jira/jira'
 import { TRELLO_METHODS } from './integrations/trello'
+import { WORK_PLAN_METHODS } from './structured-sessions/conversation/work-plan'
 import { SSH_METHODS } from './ssh/ssh'
 import { MANAGED_SERVER_METHODS } from './host-management/managed-server'
 import { RECIPE_VM_WAKE_METHODS } from './host-management/recipe-vm-wake'
@@ -139,6 +140,7 @@ export const ALL_RPC_METHODS = [
   ...LINEAR_AGENT_ACCESS_METHODS,
   ...JIRA_METHODS,
   ...TRELLO_METHODS,
+  ...WORK_PLAN_METHODS,
   ...SSH_METHODS,
   ...MANAGED_SERVER_METHODS,
   ...RECIPE_VM_WAKE_METHODS,

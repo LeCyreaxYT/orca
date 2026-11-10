@@ -14,6 +14,7 @@ import { NativeChatSettingsButton } from '../../appearance/NativeChatSettingsBut
 import type { NativeChatStructuredViewProps } from '../../native-chat-view-types'
 import type { NativeChatHandOff } from './use-native-chat-hand-off'
 import { NativeChatHistoryRefreshButton } from './NativeChatHistoryRefreshButton'
+import { NativeChatWorkPlanButton } from '../../../work-plans/NativeChatWorkPlanButton'
 import type { RuntimeClientTarget } from '../../../../../../shared/runtime-client-target'
 
 const HEADER_STYLE: React.CSSProperties & Record<'--orca-pane-title-bg', string> = {
@@ -61,6 +62,9 @@ export function NativeChatPaneHeader({
     >
       <div className="pane-title-actions ml-auto flex shrink-0 items-center gap-0">
         <NativeChatHistoryRefreshButton {...nativeChat} target={target} />
+        {nativeChat.agent === 'codex' || nativeChat.agent === 'claude' ? (
+          <NativeChatWorkPlanButton sessionId={nativeChat.sessionId} target={target} />
+        ) : null}
         {handOff && focused ? (
           <Tooltip>
             <TooltipTrigger asChild>

@@ -18,6 +18,11 @@ export type HandlerGroup = {
 
 // handler-group-manifest.test.ts checks keys against the real exports to prevent drift.
 export const HANDLER_GROUPS: readonly HandlerGroup[] = [
+  {
+    name: 'windows-mcp',
+    keys: ['windows-mcp serve'],
+    load: async () => (await import('./handlers/windows-mcp.js')).WINDOWS_MCP_HANDLERS
+  },
   JIRA_HANDLER_GROUP,
   TRELLO_HANDLER_GROUP,
   LINEAR_HANDLER_GROUP,

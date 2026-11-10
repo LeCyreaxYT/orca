@@ -21,7 +21,10 @@ export function createOrchestrationCompatibilityEnvelope(
 export const SESSION_CALLER_METHODS: ReadonlySet<string> = new Set([
   'agent.launch',
   'agent.launchReplay',
-  'trello.link'
+  'trello.link',
+  'workPlan.read',
+  'workPlan.update',
+  'workPlan.watch'
 ])
 
 export function createAgentLaunchCallerEvidence(

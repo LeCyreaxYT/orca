@@ -1,3 +1,4 @@
+import { nativeWindowsMcpCodexArgs } from '../../../work-plans/native-windows-mcp-launch'
 import { pathEnvRelativeTo } from '../../../../shared/node-cli-command-resolution'
 import { waitForPromiseWithSignal } from '../../../../shared/abort-signal-reason'
 import {
@@ -181,7 +182,11 @@ export function codexStructuredLaunchPart(
         ...(visuals ? [] : [NATIVE_CHAT_SCRATCH_DIR_ENV]),
         LEGACY_NATIVE_CHAT_VISUALS_DIR_ENV
       ],
-      cliRuntimeCommand: command
+      cliRuntimeCommand: command,
+      configureAfterSeal: (launch, sealedEnv) => ({
+        ...launch,
+        args: [...prefixArgs, ...args, ...nativeWindowsMcpCodexArgs(sealedEnv), 'app-server']
+      })
     }
   }
 }

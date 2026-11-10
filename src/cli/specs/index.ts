@@ -22,6 +22,7 @@ import { EMULATOR_COMMAND_SPECS } from './emulator'
 import { INTROSPECTION_COMMAND_SPECS } from './introspection'
 import { JIRA_COMMAND_SPECS } from './jira'
 import { TRELLO_COMMAND_SPECS } from './trello'
+import { WINDOWS_MCP_COMMAND_SPECS } from './windows-mcp'
 import { LINEAR_COMMAND_SPECS } from './linear'
 import { VM_COMMAND_SPECS } from './vm'
 import { VM_ENV_COMMAND_SPECS } from './vm-env'
@@ -60,6 +61,7 @@ export const COMMAND_SPECS: CommandSpec[] = [
   ...MANAGED_SERVER_COMMAND_SPECS,
   ...JIRA_COMMAND_SPECS,
   ...TRELLO_COMMAND_SPECS,
+  ...WINDOWS_MCP_COMMAND_SPECS,
   ...LINEAR_COMMAND_SPECS,
   ...VM_COMMAND_SPECS,
   ...VM_ENV_COMMAND_SPECS,

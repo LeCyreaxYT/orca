@@ -17,6 +17,8 @@ const collapsibleTriggerVariants = cva('', {
       default: '',
       counter:
         'flex items-center gap-1 rounded px-1.5 py-1 text-xs tabular-nums text-muted-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+      sidebar:
+        'group flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] text-worktree-sidebar-foreground/60 hover:bg-worktree-sidebar-foreground/8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
       row: 'group flex w-full cursor-pointer items-center justify-between gap-4 rounded-md bg-transparent py-2 text-left text-sm font-medium outline-none hover:bg-accent hover:text-accent-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:hover:bg-accent/50'
     },
     tone: { default: '', success: 'bg-status-success-background text-status-success' }
