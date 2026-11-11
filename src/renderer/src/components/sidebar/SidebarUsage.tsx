@@ -48,7 +48,7 @@ export default function SidebarUsage() {
   return (
     <section
       data-sidebar-usage=""
-      className="border-t border-worktree-sidebar-border px-2 pt-3 pb-2"
+      className="border-t border-worktree-sidebar-border px-2 pt-2 pb-1"
       aria-label={t('sidebar.footer.usage', 'Usage')}
     >
       <div className="flex items-baseline justify-between gap-2 px-2 pb-1 text-xs">
@@ -78,7 +78,7 @@ export default function SidebarUsage() {
               <ChevronRight className="size-3 text-muted-foreground" aria-hidden />
             </span>
             {hasUsage ? (
-              <span className="grid grid-cols-2 gap-4">
+              <span className="grid grid-cols-2 gap-3">
                 {windows.map(({ key, label: windowLabel, window }) => {
                   const value = window
                     ? getDisplayedUsagePercentage(window.usedPercent, display)
@@ -129,7 +129,7 @@ export default function SidebarUsage() {
           </>
         )
         const className =
-          'block w-full rounded-md px-2 py-2 text-left hover:bg-worktree-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+          'block w-full rounded-md px-2 py-1.5 text-left hover:bg-worktree-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
         return provider ? (
           <ProviderDetailsMenu
             key={agent}

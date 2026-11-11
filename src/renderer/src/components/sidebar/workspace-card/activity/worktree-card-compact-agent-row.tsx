@@ -345,7 +345,7 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
         hasChildDisclosure && !titleOnly && 'worktree-agent-lineage-parent-row',
         isLineageChild && !titleOnly && 'worktree-agent-lineage-child-row',
         'flex h-6 items-center gap-1',
-        titleOnly && 'h-8 gap-2 rounded-md px-2 text-[13px]',
+        titleOnly && 'h-7 gap-2 rounded-md px-2 text-[13px]',
         highlighted && 'bg-worktree-sidebar-accent',
         sendTargetStatus === 'sending' && 'cursor-progress opacity-75',
         sendTargetStatus === 'disabled' && 'cursor-default opacity-60'

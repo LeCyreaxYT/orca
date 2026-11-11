@@ -5,9 +5,11 @@ import { useTranslate } from '@/i18n/use-translate'
 import { useAppStore } from '@/store'
 
 export function SidebarWorktreeListEmptyState({
+  beforeRows,
   hasFilters,
   onClearFilters
 }: {
+  beforeRows?: React.ReactNode
   hasFilters: boolean
   onClearFilters: () => void
 }): React.JSX.Element {
@@ -20,6 +22,7 @@ export function SidebarWorktreeListEmptyState({
       className="relative min-h-0 flex-1"
     >
       <div className="worktree-sidebar-scrollbar flex h-full flex-col overflow-y-auto overflow-x-hidden pl-1 scrollbar-sleek pt-px">
+        <div className="-ml-1 flex shrink-0 flex-col">{beforeRows}</div>
         <div className="flex flex-col items-center gap-2 px-4 py-6 text-center text-[11px] text-muted-foreground">
           {discoveryCompleted && (
             <span>

@@ -23,6 +23,7 @@ import {
   isProjectSectionGroupKey
 } from '../../../../../../shared/sidebar-list/group-keys'
 import { selectWorktreeListReviewCacheInputs } from './review-cache-inputs'
+import { flatChatNavigationRows } from './chat-navigation-rows'
 import type { VirtualizedScrollAnchor } from '@/hooks/useVirtualizedScrollAnchor'
 import { SidebarWorktreeListDialogs } from '../rows/ProjectGroupDialogs'
 import { SidebarWorktreeListEmptyState } from './EmptyState'
@@ -47,13 +48,17 @@ import { useWorktreeAgentDisplay } from '../../workspace-card/activity/use-workt
 import { ProjectsCollapseAllButton } from '../controls/ProjectsCollapseAllButton'
 import { useProjectsCollapseShortcut } from '../controls/use-projects-collapse-shortcut'
 import { useProjectsCollapseAllAnnouncement } from '../controls/use-projects-collapse-all-announcement'
-import { useProjectsCollapseControl } from './use-projects-collapse-control'
+import {
+  useChatNavigationCollapsedGroups,
+  useProjectsCollapseControl
+} from './use-projects-collapse-control'
 import {
   selectDetectedWorktreesByRepo,
   selectFolderWorkspaces
 } from '@/store/workspaces/catalog/workspace-record-fields'
 
 type WorktreeListProps = {
+  beforeRows?: React.ReactNode
   scrollOffsetRef: React.MutableRefObject<number>
   scrollAnchorRef: React.MutableRefObject<VirtualizedScrollAnchor>
   workspaceBoardOpen?: boolean
@@ -71,6 +76,7 @@ const useSidebarListModel =
     : useWindowSidebarListModel
 
 const WorktreeList = React.memo(function WorktreeList({
+  beforeRows,
   scrollOffsetRef,
   scrollAnchorRef,
   workspaceBoardOpen = false,
@@ -117,13 +123,7 @@ const WorktreeList = React.memo(function WorktreeList({
   const { agentActivityDisplayMode } = useWorktreeAgentDisplay()
   const chatNavigation =
     groupBy === 'repo' && agentActivityDisplayMode === 'full' && cardProps.includes('inline-agents')
-  const listCollapsedGroups = useMemo(
-    () =>
-      chatNavigation
-        ? new Set([...collapsedGroups].filter((key) => !isProjectSectionGroupKey(key)))
-        : collapsedGroups,
-    [chatNavigation, collapsedGroups]
-  )
+  const listCollapsedGroups = useChatNavigationCollapsedGroups(chatNavigation, collapsedGroups)
   const { prCache, hostedReviewCache } = useAppStore(
     useShallow((s) => selectWorktreeListReviewCacheInputs(s, groupBy, cardProps))
   )
@@ -168,16 +168,7 @@ const WorktreeList = React.memo(function WorktreeList({
     agentSendTargetWorktreeId
   })
   const displayRows = useMemo(
-    () =>
-      chatNavigation
-        ? rowModel.sectionRows
-            .filter((row) => row.type !== 'header' || row.count === 0)
-            .map((row) =>
-              row.type === 'item' || row.type === 'folder-workspace'
-                ? { ...row, groupDepth: 0 }
-                : row
-            )
-        : rowModel.sectionRows,
+    () => (chatNavigation ? flatChatNavigationRows(rowModel.sectionRows) : rowModel.sectionRows),
     [chatNavigation, rowModel.sectionRows]
   )
   const visibleProjectRepoIdsBySection = useMemo(
@@ -288,7 +279,13 @@ const WorktreeList = React.memo(function WorktreeList({
   )
   // Clear Filters must outrank empty project headers when filtering hides every workspace.
   if (rowModel.rows.length === 0 || filtersHideAllRows) {
-    return <SidebarWorktreeListEmptyState hasFilters={hasFilters} onClearFilters={clearFilters} />
+    return (
+      <SidebarWorktreeListEmptyState
+        beforeRows={beforeRows}
+        hasFilters={hasFilters}
+        onClearFilters={clearFilters}
+      />
+    )
   }
 
   return (
@@ -321,6 +318,7 @@ const WorktreeList = React.memo(function WorktreeList({
         onOpenWorktreeVisibility={handleOpenWorktreeVisibility}
       />
       <VirtualizedWorktreeViewport
+        beforeRows={beforeRows}
         // Wake moves status headers; preserve viewport identity across those changes.
         key={`group:${groupBy}:host:${filterState.visibleWorkspaceHostIds?.join(',') ?? 'all'}:lineage`}
         rows={displayRows}

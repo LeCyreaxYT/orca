@@ -31,6 +31,7 @@ type UseVirtualizedScrollAnchorOptions<
   TItemElement extends Element
 > = {
   anchorRef: MutableRefObject<VirtualizedScrollAnchor>
+  allowNegativeOffset?: boolean
   getItemElementKey?: (element: TItemElement) => string | null
   getRowKey: (row: TRow) => string
   hasDirectScrollInput?: () => boolean
@@ -61,6 +62,7 @@ export function useVirtualizedScrollAnchor<
   TItemElement extends Element
 >({
   anchorRef,
+  allowNegativeOffset = false,
   getItemElementKey,
   getRowKey,
   hasDirectScrollInput,
@@ -94,13 +96,14 @@ export function useVirtualizedScrollAnchor<
   const recordVirtualScrollAnchor = useCallback(
     (scrollTop: number) => {
       anchorRef.current = getVirtualizedScrollAnchorForOffset({
+        allowNegativeOffset,
         getRowKey,
         rows,
         scrollTop,
         virtualItems: virtualizer.getVirtualItems()
       })
     },
-    [anchorRef, getRowKey, rows, virtualizer]
+    [anchorRef, allowNegativeOffset, getRowKey, rows, virtualizer]
   )
 
   const recordScrollAnchor = useCallback(
@@ -111,6 +114,7 @@ export function useVirtualizedScrollAnchor<
       const scrollElement = scrollElementRef.current
       if (scrollElement && itemElementSelector && getItemElementKey) {
         const domAnchor = findVirtualizedDomScrollAnchor<TItemElement>({
+          allowNegativeOffset,
           getItemElementKey,
           itemElementSelector,
           rowIndexByKey,
@@ -123,6 +127,7 @@ export function useVirtualizedScrollAnchor<
       }
 
       anchorRef.current = getVirtualizedScrollAnchorForOffset({
+        allowNegativeOffset,
         getRowKey,
         rows,
         scrollTop,
@@ -131,6 +136,7 @@ export function useVirtualizedScrollAnchor<
     },
     [
       anchorRef,
+      allowNegativeOffset,
       getItemElementKey,
       getRowKey,
       itemElementSelector,

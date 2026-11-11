@@ -171,6 +171,21 @@ function Sidebar({
     [containerRef, dropOwnerRef, sidebarOpen]
   )
 
+  const listHeader = (
+    <SidebarHeader
+      activityBadgeTarget={setAgentBadgeTarget}
+      onWorkspaceBoardMenuOpenChange={setWorkspaceBoardMenuOpen}
+      activityOptionsTarget={setAgentOptionsTarget}
+      projectsCollapseTarget={setProjectsCollapseTarget}
+    />
+  )
+  const listNotices = (
+    <>
+      <SeveredTerminalDaemonBanner />
+      <SidebarChatSourceNotice />
+      <StalledTerminalDaemonBanner />
+    </>
+  )
   return (
     <TooltipProvider>
       <SidebarChatHistorySync />
@@ -185,16 +200,12 @@ function Sidebar({
           {sidebarOpen && (
             <>
               <SidebarNav />
-              <SidebarPinnedChats />
-              <SidebarHeader
-                activityBadgeTarget={setAgentBadgeTarget}
-                onWorkspaceBoardMenuOpenChange={setWorkspaceBoardMenuOpen}
-                activityOptionsTarget={setAgentOptionsTarget}
-                projectsCollapseTarget={setProjectsCollapseTarget}
-              />
-              <SeveredTerminalDaemonBanner />
-              <SidebarChatSourceNotice />
-              <StalledTerminalDaemonBanner />
+              {sidebarBody === 'agents' ? (
+                <>
+                  {listHeader}
+                  {listNotices}
+                </>
+              ) : null}
               <React.Suspense
                 fallback={sidebarBody === 'agents' ? <div className="min-h-0 flex-1" /> : null}
               >
@@ -215,9 +226,16 @@ function Sidebar({
               </React.Suspense>
               {sidebarBody !== 'agents' && (
                 <>
-                  <LocalGitToolchainScanBanner />
-                  <StartupWorktreeRefreshStatus />
                   <WorktreeList
+                    beforeRows={
+                      <>
+                        <SidebarPinnedChats />
+                        {listHeader}
+                        {listNotices}
+                        <LocalGitToolchainScanBanner />
+                        <StartupWorktreeRefreshStatus />
+                      </>
+                    }
                     scrollOffsetRef={worktreeScrollOffsetRef}
                     scrollAnchorRef={worktreeScrollAnchorRef}
                     workspaceBoardOpen={workspaceBoardOpen}

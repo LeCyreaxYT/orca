@@ -29,6 +29,7 @@ export function useWorktreeListVirtualizer(args: {
   scrollRef: React.RefObject<HTMLDivElement | null>
   scrollOffsetRef: React.MutableRefObject<number>
   suppressMeasurementAdjustmentUntilRef: React.MutableRefObject<number>
+  paddingStart?: number
 }) {
   const { renderRows, firstHeaderIndex, scrollRef, scrollOffsetRef } = args
   const stickyHeaderIndexes = useMemo(() => getStickyHeaderIndexes(renderRows), [renderRows])
@@ -104,6 +105,7 @@ export function useWorktreeListVirtualizer(args: {
 
   const virtualizer = useVirtualizer({
     count: renderRows.length,
+    paddingStart: args.paddingStart ?? 0,
     getScrollElement: () => scrollRef.current,
     estimateSize: (index) =>
       estimateRenderRowSize(

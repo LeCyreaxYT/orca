@@ -186,7 +186,7 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="ghost"
+              variant="row-action"
               size="icon-xs"
               type="button"
               aria-label={t(
@@ -217,7 +217,7 @@ export function SidebarSettingsHelpMenu(): React.JSX.Element {
             <TooltipTrigger asChild>
               <DropdownMenuTrigger asChild>
                 <Button
-                  variant="ghost"
+                  variant="row-action"
                   size="icon-xs"
                   type="button"
                   aria-label={t(

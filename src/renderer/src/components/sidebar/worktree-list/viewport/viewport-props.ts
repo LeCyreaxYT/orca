@@ -38,6 +38,7 @@ import type {
 
 export const EMPTY_PROJECT_GROUPS: readonly ProjectGroup[] = []
 export type VirtualizedWorktreeViewportProps = {
+  beforeRows?: React.ReactNode
   occurrencePlan?: WorktreeOccurrencePlan<Worktree>
   visibleProjectRepoIdsBySection?: ReadonlyMap<string, ReadonlySet<string>>
   rows: HostSectionRow[]

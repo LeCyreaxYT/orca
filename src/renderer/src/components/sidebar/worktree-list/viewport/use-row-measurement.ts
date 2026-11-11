@@ -98,6 +98,7 @@ export function useVirtualRowMeasurementSync(args: {
   }, [activeRenderRowKeys, prCacheLen, issueCacheLen, measureMountedRows, virtualizer])
 
   useVirtualizedScrollAnchor({
+    allowNegativeOffset: true,
     anchorRef: scrollAnchorRef,
     getItemElementKey: getVirtualRowKey,
     getRowKey: getRenderRowKey,

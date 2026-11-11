@@ -50,6 +50,19 @@ export function useWorktreeSidebarScrollSuppression(
     suppressMeasurementAdjustmentUntilRef.current = suppressUntil
     directScrollInputUntilRef.current = suppressUntil
   }, [])
+  const handleScrollPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const scrollbarWidth = event.currentTarget.offsetWidth - event.currentTarget.clientWidth
+      if (scrollbarWidth <= 0) {
+        return
+      }
+      const rect = event.currentTarget.getBoundingClientRect()
+      if (event.clientX >= rect.right - scrollbarWidth) {
+        markDirectScrollInput()
+      }
+    },
+    [markDirectScrollInput]
+  )
   const hasDirectScrollInput = useCallback(
     () => window.performance.now() < directScrollInputUntilRef.current,
     []
@@ -90,6 +103,7 @@ export function useWorktreeSidebarScrollSuppression(
   return {
     suppressMeasurementAdjustmentUntilRef,
     directScrollInputUntilRef,
+    handleScrollPointerDown,
     markScrollMovement,
     markDirectScrollInput,
     hasDirectScrollInput,

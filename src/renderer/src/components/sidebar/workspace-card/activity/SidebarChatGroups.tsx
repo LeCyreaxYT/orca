@@ -131,9 +131,12 @@ export function SidebarChatGroups({
                 !['idle', 'done', 'unverifiable'].includes(agentRowDisplayDotState(agent))
             )
           )
-          const visible = expanded.has(group.id)
-            ? group.rows
-            : group.rows.filter((row, index) => index < 5 || (row.agent && required.has(row.agent)))
+          const visible =
+            pinnedOnly || expanded.has(group.id)
+              ? group.rows
+              : group.rows.filter(
+                  (row, index) => index < 5 || (row.agent && required.has(row.agent))
+                )
           const signal = SUMMARY_STATE_ORDER.find((candidate) =>
             group.rows.some(
               (row) =>
@@ -218,7 +221,7 @@ export function SidebarChatGroups({
                       </SidebarChatDraggableRow>
                     )
                   })}
-                  {group.rows.length > 5 ? (
+                  {!pinnedOnly && group.rows.length > 5 ? (
                     <button
                       type="button"
                       className="px-1.5 py-1.5 text-left text-xs text-muted-foreground hover:text-foreground"

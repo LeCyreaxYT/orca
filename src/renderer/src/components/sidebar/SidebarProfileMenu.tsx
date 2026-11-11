@@ -53,21 +53,16 @@ export function SidebarProfileMenu({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md px-2 py-2 text-left hover:bg-worktree-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           aria-label={t('sidebar.footer.profileMenu', '{{name}} · Profile and accounts', { name })}
         >
           <span
-            className="flex size-8 shrink-0 items-center justify-center rounded-full bg-worktree-sidebar-accent text-xs font-medium"
+            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-worktree-sidebar-accent text-xs font-medium"
             aria-hidden
           >
             {initials}
           </span>
-          <span className="grid min-w-0 flex-1 gap-0.5">
-            <span className="truncate text-sm font-medium">{name}</span>
-            <span className="text-2xs text-muted-foreground">
-              {t('sidebar.footer.appName', 'Orca Sky')}
-            </span>
-          </span>
+          <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{name}</span>
           <ChevronDown className="size-3 shrink-0 text-muted-foreground" aria-hidden />
         </button>
       </DropdownMenuTrigger>

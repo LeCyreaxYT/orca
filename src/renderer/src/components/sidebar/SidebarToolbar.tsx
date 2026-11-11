@@ -24,7 +24,10 @@ const SidebarToolbar = React.memo(function SidebarToolbar({
           <SidebarUsage />
         </React.Suspense>
       ) : null}
-      <div className="flex items-center gap-1 border-t border-worktree-sidebar-border px-2 py-1">
+      <div
+        data-sidebar-profile-row
+        className="flex items-center gap-1 border-t border-worktree-sidebar-border px-2 py-1 hover:bg-worktree-sidebar-accent"
+      >
         <SidebarProfileMenu
           showUsage={showUsage}
           onShowUsageChange={setShowUsage}

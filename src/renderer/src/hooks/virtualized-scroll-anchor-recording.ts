@@ -9,11 +9,13 @@ type VirtualScrollItem = {
 export function findVirtualizedDomScrollAnchor<TItemElement extends Element>({
   getItemElementKey,
   itemElementSelector,
+  allowNegativeOffset = false,
   rowIndexByKey,
   scrollElement
 }: {
   getItemElementKey: (element: TItemElement) => string | null
   itemElementSelector: string
+  allowNegativeOffset?: boolean
   rowIndexByKey: ReadonlyMap<string, number>
   scrollElement: Element
 }): NonNullable<VirtualizedScrollAnchor> | null {
@@ -42,18 +44,25 @@ export function findVirtualizedDomScrollAnchor<TItemElement extends Element>({
   return {
     fallbackKeys: visibleItems.slice(1).map((item) => item.key),
     key: firstVisible.key,
-    offset: Math.min(firstVisible.rect.height, Math.max(0, scrollRect.top - firstVisible.rect.top)),
+    offset: Math.min(
+      firstVisible.rect.height,
+      allowNegativeOffset
+        ? scrollRect.top - firstVisible.rect.top
+        : Math.max(0, scrollRect.top - firstVisible.rect.top)
+    ),
     scrollTop: scrollElement.scrollTop
   }
 }
 
 export function getVirtualizedScrollAnchorForOffset<TRow>({
   getRowKey,
+  allowNegativeOffset = false,
   rows,
   scrollTop,
   virtualItems
 }: {
   getRowKey: (row: TRow) => string
+  allowNegativeOffset?: boolean
   rows: readonly TRow[]
   scrollTop: number
   virtualItems: readonly VirtualScrollItem[]
@@ -71,7 +80,9 @@ export function getVirtualizedScrollAnchorForOffset<TRow>({
       .filter((row): row is TRow => row != null)
       .map(getRowKey),
     key: getRowKey(row),
-    offset: Math.max(0, scrollTop - firstVisible.start),
+    offset: allowNegativeOffset
+      ? scrollTop - firstVisible.start
+      : Math.max(0, scrollTop - firstVisible.start),
     scrollTop
   }
 }

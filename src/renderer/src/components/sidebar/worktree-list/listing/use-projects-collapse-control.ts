@@ -6,6 +6,20 @@ import {
   setAllProjectsCollapsed
 } from './project-collapse-all'
 import type { WorktreeGroupBy } from '../../../../../../shared/sidebar-list/row-types'
+import { isProjectSectionGroupKey } from '../../../../../../shared/sidebar-list/group-keys'
+
+export function useChatNavigationCollapsedGroups(
+  chatNavigation: boolean,
+  collapsedGroups: Set<string>
+) {
+  return useMemo(
+    () =>
+      chatNavigation
+        ? new Set([...collapsedGroups].filter((key) => !isProjectSectionGroupKey(key)))
+        : collapsedGroups,
+    [chatNavigation, collapsedGroups]
+  )
+}
 
 export function useProjectsCollapseControl(
   groupBy: WorktreeGroupBy,

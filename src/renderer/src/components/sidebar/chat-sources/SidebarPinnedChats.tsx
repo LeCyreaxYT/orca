@@ -17,7 +17,7 @@ export function SidebarPinnedChats() {
       >
         {t('sidebar.chatGroups.pinned', 'Pinned')}
       </h2>
-      <div className="scrollbar-sleek max-h-[min(16rem,20vh)] overflow-y-auto pl-2">
+      <div>
         {workspaces
           .filter((workspace) => !workspace.isArchived)
           .map((workspace) => (

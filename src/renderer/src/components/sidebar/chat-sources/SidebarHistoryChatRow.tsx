@@ -45,7 +45,7 @@ export function SidebarHistoryChatRow({
       tabIndex={0}
       aria-busy={opening}
       data-sidebar-chat-row={sidebarHistoryChatId(session)}
-      className="flex h-8 min-w-0 cursor-pointer items-center gap-2 rounded-md px-2 text-[13px] text-worktree-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="flex h-7 min-w-0 cursor-pointer items-center gap-2 rounded-md px-2 text-[13px] text-worktree-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       aria-label={session.title}
       onClick={() => void open()}
       onKeyDown={(event) => {
