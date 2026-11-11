@@ -9,11 +9,10 @@ import { encodeFederatedControlMessage } from '../../../../orchestration/federat
 import { ORCHESTRATION_FEDERATION_CONTROL_MAIL_PROTOCOL_VERSION } from '../../../../../../shared/orchestration/orchestration-runtime-capabilities'
 import { recordReceiptBeforeNudge } from './mutation-replay-nudge'
 import type { SendParams } from './send-params'
-import type { SendRecipientWarning } from './recipient-routing'
 import type { z } from 'zod'
 
 type SendParamsInput = z.infer<typeof SendParams>
-type SendReceipt = <T extends object>(receipt: T) => T & { warnings?: SendRecipientWarning[] }
+import type { SendReceipt } from './send-receipt'
 
 /** Delivers coordinator control mail to a federated worker when `to` names its exact Dispatch. */
 export function sendFederatedControlMail(args: {

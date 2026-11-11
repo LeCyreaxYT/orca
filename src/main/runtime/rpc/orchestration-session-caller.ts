@@ -45,7 +45,8 @@ export const ORCHESTRATION_CALLER_PARAM: Readonly<Record<string, CallerParam>> =
   'orchestration.taskCreate': 'callerTerminalHandle',
   'orchestration.taskList': 'callerTerminalHandle',
   'orchestration.taskUpdate': 'callerTerminalHandle',
-  'orchestration.workerStart': 'from'
+  'orchestration.workerStart': 'from',
+  'orchestration.approvalAnswer': 'from'
 }
 
 export type OrchestrationRequestRoute = {

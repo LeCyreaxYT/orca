@@ -216,6 +216,38 @@ describe('ClaudeHookService.install', () => {
     }
   })
 
+  it.skipIf(process.platform === 'win32')(
+    'keeps a user-chosen async PermissionRequest async, without a decision wait',
+    () => {
+      const tmpHome = mkdtempSync(join(tmpdir(), 'orca-claude-async-'))
+      vi.stubEnv('HOME', tmpHome)
+      try {
+        const service = new ClaudeHookService()
+        service.install(CURRENT_CLAUDE)
+        const settingsPath = join(tmpHome, '.claude', 'settings.json')
+        type Hook = TestHook & { async?: boolean; timeout?: number }
+        const read = (): { hooks: Record<string, { hooks: Hook[] }[]> } =>
+          JSON.parse(readFileSync(settingsPath, 'utf-8'))
+        const settings = read()
+        const managed = settings.hooks.PermissionRequest[0].hooks[0]
+        settings.hooks.PermissionRequest[0].hooks[0] = { ...managed, async: true }
+        writeFileSync(settingsPath, JSON.stringify(settings), 'utf-8')
+
+        expect(service.getStatus(CURRENT_CLAUDE).state).toBe('installed')
+        expect(service.install(CURRENT_CLAUDE).state).toBe('installed')
+        expect(read().hooks.PermissionRequest[0].hooks[0]).toMatchObject({
+          async: true,
+          command: `export ORCA_HOOK_ASYNC=1; ${managed.command}`,
+          timeout: 10
+        })
+        expect(service.getStatus(CURRENT_CLAUDE).state).toBe('installed')
+      } finally {
+        vi.unstubAllEnvs()
+        rmSync(tmpHome, { recursive: true, force: true })
+      }
+    }
+  )
+
   it('writes only the events an old resolved Claude knows and reports that as installed', () => {
     const tmpHome = mkdtempSync(join(tmpdir(), 'orca-claude-old-version-'))
     vi.stubEnv('HOME', tmpHome)
@@ -394,15 +426,15 @@ describe('ClaudeHookService.install', () => {
           'utf-8'
         )
 
-        expect(new ClaudeHookService().getStatus().state).toBe('not_installed')
-        expect(new ClaudeHookService().install().state).toBe('installed')
+        expect(new ClaudeHookService().getStatus(CURRENT_CLAUDE).state).toBe('not_installed')
+        expect(new ClaudeHookService().install(CURRENT_CLAUDE).state).toBe('installed')
 
         const settings = JSON.parse(readFileSync(settingsPath, 'utf-8')) as {
           hooks: Record<string, { hooks: TestHook[] }[]>
         }
         expect(JSON.stringify(settings.hooks)).not.toContain('someone-else')
         expect(settings.hooks.PreToolUse[0].hooks[0].command).toBe(scriptPath.replaceAll('\\', '/'))
-        expect(new ClaudeHookService().getStatus().state).toBe('installed')
+        expect(new ClaudeHookService().getStatus(CURRENT_CLAUDE).state).toBe('installed')
       } finally {
         vi.unstubAllEnvs()
         rmSync(tmpHome, { recursive: true, force: true })

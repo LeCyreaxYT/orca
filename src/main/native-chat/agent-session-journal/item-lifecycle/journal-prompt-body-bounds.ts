@@ -133,7 +133,8 @@ function boundPromptOptions(
     label: boundInlineText(option.label, JOURNAL_PROMPT_OPTION_LIMITS).text,
     ...(option.description === undefined
       ? {}
-      : { description: boundInlineText(option.description, JOURNAL_PROMPT_OPTION_LIMITS).text })
+      : { description: boundInlineText(option.description, JOURNAL_PROMPT_OPTION_LIMITS).text }),
+    ...(option.intent === undefined ? {} : { intent: option.intent })
   }))
 }
 

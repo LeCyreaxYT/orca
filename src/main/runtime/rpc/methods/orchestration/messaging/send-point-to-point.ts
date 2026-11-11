@@ -13,7 +13,6 @@ import { legacyWorkerDeliveryContract } from '../routing'
 import { exposeMessage } from './mailbox-message-receipt'
 import { WORKER_DONE_RECORDED_NEXT } from '../receipt-next'
 import { recordReceiptForPostCommitNudge } from './mutation-replay-nudge'
-import type { SendRecipientWarning } from './recipient-routing'
 import {
   workerReportRefusal,
   type WorkerReportRefusal
@@ -21,7 +20,7 @@ import {
 import type { z } from 'zod'
 
 type SendParamsInput = z.infer<typeof SendParams>
-type SendReceipt = <T extends object>(receipt: T) => T & { warnings?: SendRecipientWarning[] }
+import type { SendReceipt } from './send-receipt'
 
 export function sendPointToPointMessage(args: {
   params: SendParamsInput

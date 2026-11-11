@@ -25,7 +25,7 @@ import type { OrchestrationPartyIdentity as OrchestrationCallerIdentity } from '
 import type { z } from 'zod'
 
 type SendParamsInput = z.infer<typeof SendParams>
-type SendReceipt = <T extends object>(receipt: T) => T & { warnings?: SendRecipientWarning[] }
+import type { SendReceipt } from './send-receipt'
 
 type GroupAgentSnapshot = OrchestrationAddressableAgent & { tabId?: string; leafId?: string }
 

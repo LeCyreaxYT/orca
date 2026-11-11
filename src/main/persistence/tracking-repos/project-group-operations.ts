@@ -1,3 +1,5 @@
+import type { ProfileSaveDomains } from '../profile-save-domains'
+import { WORKSPACE_SESSION_DOMAINS } from '../workspace-session-domains'
 import type { PersistedState } from '../../../shared/persisted-state-types'
 import type { ProjectGroup, ProjectGroupUpdate } from '../../../shared/project-group-types'
 import {
@@ -11,7 +13,7 @@ import { removeWorkspaceSessionOwnersEverywhere } from '../restoring-sessions/se
 
 export type ProjectGroupMutationOperations = {
   state: PersistedState
-  scheduleSave: () => void
+  scheduleSave: (domains: ProfileSaveDomains) => void
   removeWorkspaceLineageForRemovedFolder: (folderWorkspaceId: string) => void
   pruneMobileClientTabSelections: (matchesWorktreeId: (worktreeId: string) => boolean) => void
 }
@@ -23,8 +25,8 @@ export class ProjectGroupPersistenceOperations {
     return this.operations.state
   }
 
-  private scheduleSave(): void {
-    this.operations.scheduleSave()
+  private scheduleSave(domains: ProfileSaveDomains): void {
+    this.operations.scheduleSave(domains)
   }
 
   private removeWorkspaceLineageForRemovedFolder(folderWorkspaceId: string): void {
@@ -64,7 +66,7 @@ export class ProjectGroupPersistenceOperations {
       group.rootProjectOrder = rootProjectOrder
     }
     this.state.projectGroups = [...(this.state.projectGroups ?? []), group]
-    this.scheduleSave()
+    this.scheduleSave(['projectGroups'])
     return group
   }
 
@@ -94,7 +96,7 @@ export class ProjectGroupPersistenceOperations {
       group.color = typeof updates.color === 'string' ? updates.color : null
     }
     group.updatedAt = Date.now()
-    this.scheduleSave()
+    this.scheduleSave(['projectGroups'])
     return group
   }
 
@@ -126,7 +128,15 @@ export class ProjectGroupPersistenceOperations {
       (workspace) => !deletedGroupIds.has(workspace.projectGroupId)
     )
     this.pruneMobileClientTabSelections((worktreeId) => removedFolderWorkspaceKeys.has(worktreeId))
-    this.scheduleSave()
+    this.scheduleSave([
+      'projectGroups',
+      'repos',
+      'folderWorkspaces',
+      'workspaceLineageByChildKey',
+      'crossStoreLineageByChildKey',
+      ...WORKSPACE_SESSION_DOMAINS,
+      'mobileClientTabSelectionsByDeviceId'
+    ])
     return true
   }
 }
