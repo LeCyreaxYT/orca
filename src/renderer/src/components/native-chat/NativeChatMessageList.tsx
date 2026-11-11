@@ -16,7 +16,7 @@ import {
 } from '../../../../shared/native-chat/native-chat-appearance-settings'
 import type { NativeChatLiveSession } from './session/terminal/read/native-chat-live-session-contract'
 import { useNativeChatTranscriptProjection } from './conversation/projection/use-native-chat-transcript-projection'
-import { desktopStructuredTranscript } from './conversation/projection/structured-agent-session-message-projection'
+import { useNativeChatQuestionReceipts } from './conversation/projection/use-native-chat-question-receipts'
 import { nativeChatTaskListPredecessors } from '../../../../shared/native-chat/input/native-chat-task-list-history'
 import { NativeChatDockedTaskList } from './tools/tasks/NativeChatDockedTaskList'
 import { useNativeChatTurnStatus } from './conversation/turns/use-native-chat-turn-status'
@@ -88,6 +88,7 @@ export function NativeChatMessageList({
   workingStartedAt,
   settledTurns,
   deliveryNotices,
+  trailing,
   awaitingInput = null,
   turnActivity,
   stopping = false,
@@ -116,6 +117,8 @@ export function NativeChatMessageList({
   /** Host durations by prompt id; otherwise fall back to a duration observed locally. */
   settledTurns?: NativeChatSettledTurns
   deliveryNotices?: ReadonlyMap<string, NativeChatDeliveryNotice>
+  /** Rows after the conversation that are not part of it, such as workers' open approvals. */
+  trailing?: React.ReactNode
   /** Set while the turn waits on the reader; the live activity line yields to it. */
   awaitingInput?: NativeChatAwaitingInput | null
   turnActivity?: NativeChatTurnActivity | null
@@ -124,11 +127,7 @@ export function NativeChatMessageList({
   runtimeContext?: RuntimeFileOperationArgs | null
 }): React.JSX.Element {
   const t = useTranslate()
-  const receipts = useMemo(
-    () =>
-      journalItems ? desktopStructuredTranscript.transcript(journalItems).receipts : new Map(),
-    [journalItems]
-  )
+  const receipts = useNativeChatQuestionReceipts(journalItems)
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
   const [expandedTurnIds, setExpandedTurnIds] = useState<ReadonlySet<string>>(new Set())
@@ -405,6 +404,7 @@ export function NativeChatMessageList({
                     <NativeChatAwaitingInputRow subject={null} pending />
                   ) : null}
                   <NativeChatWaitingTranscriptItems slots={waitingSlots} context={rowContext} />
+                  {trailing}
                 </div>
               </div>
             </div>

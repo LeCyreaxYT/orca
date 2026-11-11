@@ -23,7 +23,8 @@ const contracts = [
   'config/scripts/static-analysis/oxlint-contracts/quadratic-buffer-concat-plugin.test.mjs',
   'src/main/claude-usage/scanner-incremental-append.test.ts',
   'src/main/claude-usage/store-checkpoint-persistence.test.ts',
-  'src/renderer/src/components/native-chat/surfaces/integration/NativeChatResolvedView.streaming-input.test.tsx'
+  'src/renderer/src/components/native-chat/surfaces/integration/NativeChatResolvedView.streaming-input.test.tsx',
+  'src/main/runtime/agent-session/structured-agent-session-chat-wait-work-state.test.ts'
 ]
 for (const contract of contracts) {
   if (!existsSync(resolve(contract))) {

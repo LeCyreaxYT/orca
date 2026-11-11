@@ -36,6 +36,23 @@ describe('orchestration session callers at the dispatch entry', () => {
   })
 
   describe('a declared caller must name the session', () => {
+    it('refuses a worker approval answer claiming a different chat', async () => {
+      const refused = await h.dispatch(
+        orchestrationRequest(
+          'orchestration.approvalAnswer',
+          {
+            dispatch: 'ctx_missing',
+            prompt: 'approval_missing',
+            decision: 'deny',
+            reason: 'Use a different command.',
+            from: `orca_session_id:${SESSION_Y}`
+          },
+          { sessionId: SESSION_X }
+        )
+      )
+      expect(refused).toMatchObject({ ok: false, error: { code: 'consumer_fenced' } })
+    })
+
     it('accepts a /clear successor naming the address it had before the clear, and no other', async () => {
       // Y continued X after a /clear, so X's address is Y's: the lineage root names the chat.
       h.records.set(SESSION_X, {

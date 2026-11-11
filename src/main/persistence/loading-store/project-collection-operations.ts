@@ -180,7 +180,7 @@ export class ProjectCollectionOperations {
     const { runtime, scheduling } = this[projectCollectionOperationsContext]
     const changed = applyWslMoveRetainedMarks(runtime.state, marks)
     if (changed > 0) {
-      scheduleSave(scheduling)
+      scheduleSave(scheduling, ['repos', 'folderWorkspaces'])
     }
     return changed
   }
@@ -210,7 +210,8 @@ export function getProjectHostOperations(
         ),
       removeProjectForHost: (target) =>
         owner[projectCollectionOperationsContext].repos.removeProjectForHost(target),
-      scheduleSave: () => scheduleSave(owner[projectCollectionOperationsContext].scheduling)
+      scheduleSave: (domains) =>
+        scheduleSave(owner[projectCollectionOperationsContext].scheduling, domains)
     })
   return owner[projectCollectionOperationsContext].runtime.projectHostOperations
 }
@@ -221,7 +222,8 @@ export function getProjectGroupOperations(
   owner[projectCollectionOperationsContext].runtime.projectGroupOperations ??=
     new ProjectGroupPersistenceOperations({
       state: owner[projectCollectionOperationsContext].runtime.state,
-      scheduleSave: () => scheduleSave(owner[projectCollectionOperationsContext].scheduling),
+      scheduleSave: (domains) =>
+        scheduleSave(owner[projectCollectionOperationsContext].scheduling, domains),
       removeWorkspaceLineageForRemovedFolder: (folderWorkspaceId) =>
         removeWorkspaceLineageForRemovedFolder(
           owner[projectCollectionOperationsContext].metadata,
@@ -242,7 +244,8 @@ export function getFolderWorkspaceOperations(
   owner[projectCollectionOperationsContext].runtime.folderWorkspaceOperations ??=
     new FolderWorkspacePersistenceOperations({
       state: owner[projectCollectionOperationsContext].runtime.state,
-      scheduleSave: () => scheduleSave(owner[projectCollectionOperationsContext].scheduling),
+      scheduleSave: (domains) =>
+        scheduleSave(owner[projectCollectionOperationsContext].scheduling, domains),
       removeWorkspaceLineageForRemovedFolder: (folderWorkspaceId) =>
         removeWorkspaceLineageForRemovedFolder(
           owner[projectCollectionOperationsContext].metadata,

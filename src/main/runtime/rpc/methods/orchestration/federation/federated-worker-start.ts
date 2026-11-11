@@ -36,6 +36,7 @@ import { withWorkerStartNext } from '../receipt-next'
 import { recordReadyFederatedDispatch } from './federated-worker-ready-record'
 import { resolveFederatedChildParent } from './federated-worker-child-parent'
 import { prepareWorkerStartCard } from '../../../../orchestration/workers/launch/worker-start-card'
+import { reportFailedWorkerStart } from '../../../../orchestration/workers/turn-stops/failed-worker-start-report'
 import {
   recordWorkerLaunchObservation,
   workerLaunchAgent
@@ -268,6 +269,9 @@ export async function startFederatedWorker(args: FederatedWorkerStartRequest): P
         remote.failedStage ?? 'remote_attach',
         remote.lastError ?? `The worker server returned ${remote.state}.`
       )
+      reportFailedWorkerStart(db, worker, (handle, type) =>
+        runtime.notifyMessageArrived(handle, type)
+      )
       return federatedFailedReceipt(worker, { runId, taskId: taskForRemote.id }, server, {
         setup: remote.setup,
         launch,
@@ -279,6 +283,9 @@ export async function startFederatedWorker(args: FederatedWorkerStartRequest): P
     const reason = error instanceof Error ? error.message : String(error)
     if (error instanceof OrchestrationError && isKnownRemoteStartFailure(error.code)) {
       const worker = db.failWorkerStart(started.dispatch.id, 'remote_attach', reason)
+      reportFailedWorkerStart(db, worker, (handle, type) =>
+        runtime.notifyMessageArrived(handle, type)
+      )
       return federatedFailedReceipt(worker, { runId, taskId: taskForRemote.id }, server, {
         launch: requestedLaunch
       })

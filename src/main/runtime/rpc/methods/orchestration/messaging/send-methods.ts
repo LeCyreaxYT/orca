@@ -32,6 +32,8 @@ import { orchestrationCallerIdentity } from '../runs/run-scope'
 import { assertLifecycleCallerIsNotAnotherParty } from './lifecycle-caller-fence'
 import { planWorkerFollowUp, startWorkerFollowUp } from './worker-follow-up'
 import { finishedWorkerSend, refuseFinishedRemoteWorker } from './finished-worker-mail'
+import { relayedDeliveryUnknownWarning, withDeliveryHoldWarning } from './send-delivery-hold'
+import { createSendReceipt } from './send-receipt'
 import {
   followThroughWorkerReport,
   passHeldWorkerMail,
@@ -195,10 +197,7 @@ export const ORCHESTRATION_SEND_METHODS = [
           sendWarnings.push(recipient.warning)
         }
       }
-      const withSendWarnings = <T extends object>(
-        receipt: T
-      ): T & { warnings?: SendRecipientWarning[] } =>
-        sendWarnings.length > 0 ? { ...receipt, warnings: sendWarnings } : receipt
+      const withSendWarnings = createSendReceipt(sendWarnings)
 
       if (!isGroupAddress(to)) {
         let addressedDispatchId = to.startsWith('dispatch:')
@@ -211,7 +210,6 @@ export const ORCHESTRATION_SEND_METHODS = [
         // Federated targets perform their own liveness check before relaying.
         if (addressedDispatchId && !federatedTarget) {
           const plan = planWorkerFollowUp(db, addressedDispatchId, params.type ?? 'status')
-          // Only a settled worker awaits; mail to a working one stays synchronous until it is inserted.
           const followUp =
             plan?.kind === 'start'
               ? await startWorkerFollowUp({
@@ -227,7 +225,6 @@ export const ORCHESTRATION_SEND_METHODS = [
                   message: params
                 })
               : plan
-          // A dispatch: address carries no recipient warnings, so `next` stays last.
           if (followUp?.kind === 'started') {
             if (typeof followUp.receipt.dispatchId === 'string') {
               passHeldWorkerMail(runtime, db, followUp.receipt.dispatchId)
@@ -250,6 +247,9 @@ export const ORCHESTRATION_SEND_METHODS = [
             messageRunId = runBound.runId
             sendWarnings.push(runBound.warning)
           }
+        }
+        if (federatedTarget) {
+          sendWarnings.push(relayedDeliveryUnknownWarning(to))
         }
         const federatedControl = sendFederatedControlMail({
           params,
@@ -287,7 +287,9 @@ export const ORCHESTRATION_SEND_METHODS = [
           db,
           params.type === 'worker_done' ? settledDispatchId(sent) : undefined
         )
-        return sent
+        return federatedTarget || params.type === 'worker_done' || params.type === 'heartbeat'
+          ? sent
+          : withDeliveryHoldWarning(sent, runtime, db, to)
       }
       return sendGroupMessage({
         params,

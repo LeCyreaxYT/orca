@@ -9,6 +9,7 @@ import {
 } from './workspace-session-write-listeners'
 import { ptyBindingGenerationOf } from './pty-binding-generations'
 import type { PartitionEditorViews } from './layout-editor-views'
+import type { ProfileSaveDomains } from '../profile-save-domains'
 
 /** Undefined means any domain may have changed. */
 export type StateWriteListener = (dirtyDomains: readonly string[] | undefined) => void
@@ -20,6 +21,7 @@ type WriteSchedulingOperationsRuntime = Pick<
   StoreRuntimeState,
   | 'activeViewPreference'
   | 'automationListProjectionCache'
+  | 'pendingAutomationRunsAfter'
   | 'dirtyProfileStateDomains'
   | 'firstPendingSaveAt'
   | 'pendingWrite'
@@ -90,9 +92,23 @@ export class WriteSchedulingOperations {
   }
 }
 
+/** Saves the rows of the domains a mutation changed. */
 export function scheduleSave(
   owner: WriteSchedulingOperations,
-  dirtyDomains?: readonly string[],
+  domains: ProfileSaveDomains,
+  writtenHostId?: ExecutionHostId
+): void {
+  scheduleDomainSave(owner, domains, writtenHostId)
+}
+
+/** Startup load, migration and maintenance resume only: their changes span the profile. */
+export function scheduleFullProfileSave(owner: WriteSchedulingOperations): void {
+  scheduleDomainSave(owner, undefined)
+}
+
+function scheduleDomainSave(
+  owner: WriteSchedulingOperations,
+  dirtyDomains: readonly string[] | undefined,
   writtenHostId?: ExecutionHostId
 ): void {
   const { runtime, writes } = owner[writeSchedulingOperationsContext]
@@ -101,6 +117,13 @@ export function scheduleSave(
     listener(dirtyDomains)
   }
   runtime.automationListProjectionCache = null
+  // A run list replaced outside the run-delta path saves as a whole row; an older pending delta is stale.
+  if (
+    dirtyDomains?.includes('automationRuns') &&
+    runtime.pendingAutomationRunsAfter !== runtime.state.automationRuns
+  ) {
+    runtime.pendingAutomationRunsAfter = undefined
+  }
   const trackedDomains = runtime.dirtyProfileStateDomains
   if (dirtyDomains === undefined) {
     runtime.dirtyProfileStateDomains = null
