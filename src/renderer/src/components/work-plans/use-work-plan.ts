@@ -79,24 +79,24 @@ export function useWorkPlan(sessionId: string, target: RuntimeClientTarget, open
       }
       setPending(true)
       setError(null)
-      try {
-        const value = await callRuntimeRpc<WorkPlan>(
-          target,
-          command === 'run' ? 'workPlan.run' : 'workPlan.update',
-          {
-            sessionId,
-            expectedRevision: plan?.revision ?? 0,
-            ...(command === 'run' ? {} : { command })
-          }
-        )
-        setPlan(value)
-        return true
-      } catch (cause) {
-        setError(failureMessage(cause))
-        return false
-      } finally {
-        setPending(false)
-      }
+      return callRuntimeRpc<WorkPlan>(
+        target,
+        command === 'run' ? 'workPlan.run' : 'workPlan.update',
+        {
+          sessionId,
+          expectedRevision: plan?.revision ?? 0,
+          ...(command === 'run' ? {} : { command })
+        }
+      )
+        .then((value) => {
+          setPlan(value)
+          return true
+        })
+        .catch((cause) => {
+          setError(failureMessage(cause))
+          return false
+        })
+        .finally(() => setPending(false))
     },
     [pending, ready, target, sessionId, plan]
   )

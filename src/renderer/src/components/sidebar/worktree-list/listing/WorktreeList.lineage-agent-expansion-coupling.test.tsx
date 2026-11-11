@@ -328,6 +328,7 @@ function setAgentLineageState(options: {
     setWorktreesPinnedAndReveal: vi.fn(),
     settings: null,
     showSleepingWorkspaces: true,
+    sidebarChatGroupsByWorktree: {},
     sortBy: 'manual',
     sortEpoch: 0,
     sshConnectedGeneration: 0,

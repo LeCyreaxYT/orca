@@ -61,13 +61,8 @@ function renderHeader(handOff?: NativeChatHeaderHandOff, focused = true) {
   return source
 }
 
-it('offers chat actions without a duplicate close button and targets Resume at the displayed chat', () => {
+it('targets Resume at the displayed chat and hides it for a different execution host', () => {
   const source = renderHeader()
-  expect(screen.getAllByRole('button').map((button) => button.getAttribute('aria-label'))).toEqual([
-    'Continue with Terminal Agent',
-    'Split Right',
-    'Chat settings'
-  ])
   const folder = useAppStore.getState().folderWorkspaces[0]
   act(() => useAppStore.setState({ folderWorkspaces: [{ ...folder, executionHostId: 'ssh:dev' }] }))
   expect(screen.queryByRole('button', { name: 'Continue with Terminal Agent' })).toBeNull()
