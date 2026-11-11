@@ -74,3 +74,34 @@ it('sorts resumed chats by provider activity instead of import time and obeys na
     sortSidebarChats(rows, { ...options, sortBy: 'name' }).map((item) => item.agent?.paneKey)
   ).toEqual(['older', 'newer'])
 })
+
+it('does not promote an opened historical failure, while a running chat moves up until it finishes', () => {
+  const older = row('older')
+  older.tab.aiVaultTitle = { agent: 'codex', sessionId: 'old', title: 'Older' }
+  older.entry.mainAgent = { state: 'done', stateStartedAt: 9000, outcome: 'unconfirmed' }
+  const newer = row('newer')
+  newer.tab.aiVaultTitle = { agent: 'codex', sessionId: 'new', title: 'Newer' }
+  const options = {
+    sortBy: 'smart' as const,
+    sessions: new Map(),
+    structure: {
+      projects: [],
+      assignments: {},
+      pinned: [],
+      available: true,
+      updatedAt: { old: 100, new: 200 }
+    }
+  }
+  const order = () =>
+    sortSidebarChats([{ agent: older }, { agent: newer }], options).map(
+      (item) => item.agent?.paneKey
+    )
+  expect(order()).toEqual(['newer', 'older'])
+  delete older.entry.mainAgent
+  older.state = 'working'
+  older.entry.state = 'working'
+  expect(order()).toEqual(['older', 'newer'])
+  older.state = 'done'
+  older.entry.state = 'done'
+  expect(order()).toEqual(['newer', 'older'])
+})

@@ -52,7 +52,7 @@ const SidebarHeader = React.memo(function SidebarHeader({
   )
 
   return (
-    <div className="group/sidebar-header mt-2 flex h-8 min-w-0 shrink-0 items-center justify-between gap-1.5 px-2 @max-3xs/sidebar:h-auto @max-3xs/sidebar:flex-col @max-3xs/sidebar:items-stretch @max-3xs/sidebar:gap-0">
+    <div className="group/sidebar-header mt-2 flex h-8 min-w-0 shrink-0 items-center justify-between gap-1.5 pl-2 pr-1 @max-3xs/sidebar:h-auto @max-3xs/sidebar:flex-col @max-3xs/sidebar:items-stretch @max-3xs/sidebar:gap-0">
       <div
         className="flex min-w-0 items-center"
         data-contextual-tour-target={groupBy === 'repo' ? 'projects-collapse-all' : undefined}

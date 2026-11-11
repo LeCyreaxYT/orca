@@ -58,6 +58,45 @@ const QUESTIONS_INPUT = {
   questions: [{ question: 'Deploy?', options: [{ label: 'Yes' }, { label: 'No' }] }]
 }
 
+it('settles externally answered question IDs even in previously reordered imports, leaving other questions open', () => {
+  const first = message('question', [
+    {
+      type: 'tool-call',
+      name: 'request_user_input_async',
+      callId: 'call_upload',
+      input: { questions: [{ title: 'Upload?' }, { title: 'Publish?' }] }
+    }
+  ])
+  const other = message('other', [
+    {
+      type: 'tool-call',
+      name: 'request_user_input_async',
+      callId: 'call_other',
+      input: { questions: [{ title: 'Review?' }] }
+    }
+  ])
+  const reply = userTurn(
+    'reply',
+    '<send_user_message_question_reply>\n' +
+      '[{"questionItemId":"[\\"request_user_input_async\\",\\"call_upload\\",0]","answer":"Yes"}]\n' +
+      '</send_user_message_question_reply>'
+  )
+  for (const messages of [
+    [first, other, reply],
+    [reply, first, other]
+  ]) {
+    expect(extractPendingAsk(messages)?.questions.map((question) => question.question)).toEqual([
+      'Publish?',
+      'Review?'
+    ])
+  }
+  expect(
+    extractPendingAsk([{ ...reply, queued: true }, first])?.questions.map(
+      (question) => question.question
+    )
+  ).toEqual(['Upload?', 'Publish?'])
+})
+
 describe('extractPendingAsk', () => {
   it('resolves calls FIFO so a sibling result cannot clear a newer pending ask', () => {
     const pending = extractPendingAsk([

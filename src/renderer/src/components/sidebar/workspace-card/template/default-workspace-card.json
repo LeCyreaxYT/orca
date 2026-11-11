@@ -23,9 +23,9 @@
     "ports": "options.show.ports && ports.count > 0",
     "indicators": "vars.details || vars.ports",
     "metaIndicators": "vars.classic && vars.indicators",
-    "titleIndicators": "!vars.classic && vars.indicators",
+    "titleIndicators": "!vars.chatNavigation && !vars.classic && vars.indicators",
     "hasMetaRow": "!vars.chatNavigation && (vars.metaRow ? vars.metaRepo || vars.hostBadge || vars.folderInMeta || vars.branch || vars.identityInMeta || vars.detachedInMeta || vars.conflict || git.cacheTimerActive || vars.metaIndicators : vars.conflict || git.cacheTimerActive)",
-    "star": "vars.compact && ws.isMain && !vars.folder",
+    "star": "!vars.chatNavigation && vars.compact && ws.isMain && !vars.folder",
     "headerActions": "vars.star || place.deleteQuickAction || !place.affiliateList",
     "inlineAgents": "options.show.inlineAgents && !vars.compact",
     "title": "trim(ws.title)",
@@ -36,7 +36,7 @@
   },
   "frame": {
     "singleLine": "=vars.singleLine",
-    "statusLane": "=vars.newStyle && options.show.status"
+    "statusLane": "=!vars.chatNavigation && vars.newStyle && options.show.status"
   },
   "defs": {
     "IdentityBlock": {
@@ -75,12 +75,12 @@
                 { "el": "RenameError", "when": "ws.hasRenameError && !ws.isRenaming" },
                 {
                   "el": "PrimaryBadge",
-                  "when": "!vars.compact && ws.isMain && !vars.folder",
+                  "when": "!vars.chatNavigation && !vars.compact && ws.isMain && !vars.folder",
                   "props": { "hasHoverDetails": "=vars.hoverDetails && !ws.isRenaming" }
                 },
                 {
                   "el": "SparseBadge",
-                  "when": "ws.isSparse",
+                  "when": "!vars.chatNavigation && ws.isSparse",
                   "props": { "hasHoverDetails": "=vars.hoverDetails && !ws.isRenaming" }
                 },
                 {
@@ -106,7 +106,7 @@
                 "align": "center",
                 "justify": "center",
                 "gap": "sm",
-                "inset": "end"
+                "inset": "=vars.chatNavigation ? '' : 'end'"
               },
               "children": [
                 { "el": "NewChatAction", "when": "!place.affiliateList" },
@@ -199,7 +199,10 @@
             "children": [{ "el": "IdentityBlock" }]
           },
           { "el": "IdentityBlock", "when": "!(vars.hoverDetails && !ws.isRenaming)" },
-          { "el": "RemoteBranchConflict", "when": "git.remoteBranchConflict != null" },
+          {
+            "el": "RemoteBranchConflict",
+            "when": "!vars.chatNavigation && git.remoteBranchConflict != null"
+          },
           { "el": "DeleteFailed", "when": "ws.removalError != null && !ws.isDeleting" },
           { "el": "LinearSetupPrompt", "when": "place.isActive && links.linearIssue" },
           {

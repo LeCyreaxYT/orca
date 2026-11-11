@@ -26,6 +26,8 @@ import {
   structuredAgentSessionTabId
 } from '../../../../../../shared/agent-session/view/structured-agent-session-projection'
 import { getAgentLabel } from '@/lib/agent-catalog/agent-catalog'
+import { activateAndRevealWorktreeWithOutcome } from '@/lib/workspace/activation/worktree-activation'
+import { reportAgentWorkspaceActivation } from '@/lib/workspace/activation/worktree-activation-outcome'
 
 type Props = { worktreeId: string; sidebarGroupId?: string; disabled?: boolean; labelled?: boolean }
 
@@ -47,12 +49,25 @@ function ChatChoices({
       agent: row.agent,
       worktreeId,
       requestedSurface: 'chat',
-      selectedExecutionHostId: row.executionHostId
+      selectedExecutionHostId: row.executionHostId,
+      workspaceExecutionHostId: row.executionHostId,
+      beforeSurfaceOpen: () =>
+        reportAgentWorkspaceActivation(
+          activateAndRevealWorktreeWithOutcome(worktreeId, {
+            executionHostId: row.executionHostId,
+            providesInitialSurface: true
+          }),
+          row.agent
+        )
     })
     if (!result || 'refused' in result) {
       return
     }
     onLaunch()
+    const state = useAppStore.getState()
+    if (state.sidebarChatGroupsByWorktree[worktreeId]?.workspaceCollapsed) {
+      state.editSidebarChatGroup(worktreeId, { kind: 'toggle-workspace' })
+    }
     void result.structuredSettlement
       ?.then((settlement) => {
         if (settlement.kind === 'structured') {

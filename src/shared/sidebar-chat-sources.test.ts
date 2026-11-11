@@ -1,5 +1,9 @@
 import { expect, it } from 'vitest'
-import { mappedSidebarChatWorkspace, sidebarHistoryChatId } from './sidebar-chat-sources'
+import {
+  mappedSidebarChatWorkspace,
+  sidebarHistoryChatId,
+  sidebarWorkspaceTitle
+} from './sidebar-chat-sources'
 import {
   EMPTY_SIDEBAR_CHAT_GROUPS,
   type SidebarChatGroupsByWorktree,
@@ -32,6 +36,41 @@ const structure = {
   pinned: [],
   available: true
 }
+
+it('shows mapped project names after ID migration for primary checkouts and keeps explicit names', () => {
+  const projects = {
+    ...structure,
+    projects: [
+      { id: 'new-changelogs', name: 'Changelogs', paths: ['F:/Work'] },
+      { id: 'sali', name: 'Dienstblatt / SALi', paths: ['F:/Apps/Dienstblatt'] }
+    ]
+  }
+  const workspace = { path: 'F:/Work', displayName: 'Work', branch: 'main', isMainWorktree: true }
+  expect(sidebarWorkspaceTitle(workspace, mappings.broad.sources!, projects, 'Work')).toBe(
+    'Changelogs'
+  )
+  const sali = {
+    ...workspace,
+    path: 'F:/Apps/Dienstblatt',
+    displayName: 'system/dev',
+    branch: 'refs/heads/system/dev'
+  }
+  const sources: SidebarChatSource[] = [
+    {
+      agent: 'codex',
+      executionHostId: 'local',
+      path: 'f:\\Apps\\Dienstblatt',
+      projectId: 'old-sali'
+    }
+  ]
+  expect(sidebarWorkspaceTitle(sali, sources, projects, 'system/dev')).toBe('Dienstblatt / SALi')
+  expect(
+    sidebarWorkspaceTitle({ ...sali, displayName: 'My app' }, sources, projects, 'My app')
+  ).toBe('My app')
+  expect(
+    sidebarWorkspaceTitle({ ...sali, hostId: 'ssh:another' }, sources, projects, 'Remote')
+  ).toBe('Remote')
+})
 const session = (overrides: Partial<AiVaultSession>): AiVaultSession => ({
   id: 'fixture-session',
   title: 'Fixture conversation',

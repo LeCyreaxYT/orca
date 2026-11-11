@@ -68,7 +68,10 @@ export function sortSidebarChats(
         ? Date.parse(history.updatedAt ?? history.modifiedAt)
         : (item.agent?.entry.updatedAt ?? 0))
     const attention =
-      item.agent && !['idle', 'done', 'unverifiable'].includes(agentRowDisplayDotState(item.agent))
+      item.agent &&
+      ['working', 'monitoring', 'waiting', 'blocked', 'permission'].includes(
+        agentRowDisplayDotState(item.agent)
+      )
         ? 1
         : 0
     return { item, id, title, updatedAt: Number.isFinite(updatedAt) ? updatedAt : 0, attention }

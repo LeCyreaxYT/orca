@@ -332,6 +332,15 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
       ) : (
         timestamp
       )}
+      {titleOnly && ['working', 'monitoring'].includes(dotState) ? (
+        <AgentStateDot state={dotState} size="sm" tooltipSide="right" />
+      ) : titleOnly && agent.state === 'done' && isUnvisited && !highlighted ? (
+        <span
+          className="size-2 shrink-0 rounded-full bg-callout-note"
+          role="img"
+          aria-label={t('auto.components.sidebar.WorktreeTitleInlineRename.2f42ae024f', 'Unread:')}
+        />
+      ) : null}
     </>
   )
 

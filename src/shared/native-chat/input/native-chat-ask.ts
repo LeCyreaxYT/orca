@@ -10,10 +10,11 @@ import {
   CODEX_ASYNC_QUESTION_TOOL,
   parseCodexAsyncQuestionsInput
 } from '../../codex-async-question-input'
+import { aggregateAsyncQuestions, createAsyncQuestionReplies } from './native-chat-async-questions'
+export { aggregateAsyncQuestions, asyncQuestionOccurrenceId } from './native-chat-async-questions'
 import {
   isDeliveredNativeChatUserMessage,
   isPendingNativeChatUserMessage,
-  quotedByQueuedAnswer,
   withoutPendingQueuedAnswers
 } from './native-chat-ask-answer'
 export { isDeliveredNativeChatUserMessage } from './native-chat-ask-answer'
@@ -151,6 +152,8 @@ export function extractPendingMessageReplyAsk(
 
 export type AsyncQuestionContributor = {
   sourceRowId: string
+  callId?: string
+  questionIndices?: number[]
   /** Parsed async-call slot before dedupe, independent of unrelated blocks and question text. */
   callSlot: number
   timestamp: number | null
@@ -172,49 +175,6 @@ export function asyncQuestionSourceScope(source: AsyncQuestionSourceScope): stri
   return source.kind === 'journal'
     ? JSON.stringify(['journal', source.agent, source.sessionId, source.epoch])
     : JSON.stringify(['transcript', source.agent, source.sessionId, source.transcriptPath])
-}
-
-// Canonical rows survive provider renumbering; definition edits do not create a new occurrence.
-export function asyncQuestionOccurrenceId(
-  sourceScope: string,
-  contributor: AsyncQuestionContributor
-): string {
-  return JSON.stringify([
-    'async-question',
-    sourceScope,
-    contributor.sourceRowId,
-    contributor.callSlot
-  ])
-}
-
-/** Queued texts hide questions an answer waiting in the queue already quotes; deleting that card brings them back. */
-export function aggregateAsyncQuestions(
-  contributors: readonly AsyncQuestionContributor[],
-  sourceScope?: string,
-  hiddenIds?: ReadonlySet<string>,
-  queuedTexts: readonly string[] = []
-): AskPrompt | null {
-  const questions: AskQuestion[] = []
-  const occurrenceIds: string[] = []
-  for (const contributor of contributors) {
-    const id =
-      sourceScope === undefined ? undefined : asyncQuestionOccurrenceId(sourceScope, contributor)
-    if (id !== undefined && hiddenIds?.has(id)) {
-      continue
-    }
-    if (contributor.questions.some((question) => quotedByQueuedAnswer(question, queuedTexts))) {
-      continue
-    }
-    if (id !== undefined) {
-      occurrenceIds.push(id)
-    }
-    for (const question of contributor.questions) {
-      questions.push(question)
-    }
-  }
-  return questions.length > 0
-    ? { questions, replyAsMessage: true, ...(sourceScope === undefined ? {} : { occurrenceIds }) }
-    : null
 }
 
 export type PendingAskScan = {
@@ -246,6 +206,7 @@ export function createPendingAskScanner(): {
   let answerPending = false
   const asyncSlots = new Map<string, number>()
   const asyncCallIds = new Set<string>()
+  const replies = createAsyncQuestionReplies()
   const resetBlocking = (): void => {
     outstanding = 0
     pendingDepth = -1
@@ -260,7 +221,15 @@ export function createPendingAskScanner(): {
   const append = (message: NativeChatMessage): readonly AsyncQuestionContributor[] => {
     const accepted: AsyncQuestionContributor[] = []
     // Delivered human turns/interrupts abandon the uncorrelated FIFO, or orphan calls strand later asks (#11761).
-    if (isDeliveredNativeChatUserMessage(message) || isInterruptedStatusMessage(message)) {
+    if (isDeliveredNativeChatUserMessage(message)) {
+      if (replies.record(message)) {
+        contributors = contributors
+          .map(replies.remaining)
+          .filter((contributor) => contributor.questions.length > 0)
+      } else {
+        interrupt()
+      }
+    } else if (isInterruptedStatusMessage(message)) {
       interrupt()
     }
     if (isPendingNativeChatUserMessage(message)) {
@@ -277,16 +246,19 @@ export function createPendingAskScanner(): {
           const callSlot = asyncSlots.get(message.id) ?? 0
           asyncSlots.set(message.id, callSlot + 1)
           if (block.callId === undefined || !asyncCallIds.has(block.callId)) {
-            const contributor: AsyncQuestionContributor = {
+            const contributor = replies.remaining({
               sourceRowId: message.id,
+              ...(block.callId ? { callId: block.callId } : {}),
               callSlot,
               timestamp: message.timestamp,
               questions: parsed.questions,
               responseMode: 'message'
+            })
+            if (contributor.questions.length > 0) {
+              contributors.push(contributor)
+              answerPending = false
+              accepted.push(contributor)
             }
-            contributors.push(contributor)
-            answerPending = false
-            accepted.push(contributor)
           }
           if (block.callId !== undefined) {
             asyncCallIds.add(block.callId)

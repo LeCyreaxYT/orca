@@ -1,6 +1,12 @@
 import type { AiVaultSession } from './ai-vault/contracts/ai-vault-types'
 import type { CodexProjectStructure } from './ai-vault/contracts/codex-project-structure'
-import { manualSidebarChatWorkspace, type SidebarChatGroupsByWorktree } from './sidebar-chat-groups'
+import {
+  manualSidebarChatWorkspace,
+  type SidebarChatGroupsByWorktree,
+  type SidebarChatSource
+} from './sidebar-chat-groups'
+import type { Worktree } from './worktree/types'
+import { automaticWorktreeDisplayName } from './worktree/display-name-provenance'
 import { isPathInsideOrEqual, normalizeRuntimePathForComparison } from './cross-platform-path'
 import { stripWin32LongPathPrefix } from './windows-path-access'
 
@@ -8,6 +14,63 @@ export function sidebarHistoryChatId(
   session: Pick<AiVaultSession, 'executionHostId' | 'agent' | 'sessionId'>
 ): string {
   return JSON.stringify(['history', session.executionHostId, session.agent, session.sessionId])
+}
+
+export function sidebarSourceCodexProject(
+  source: SidebarChatSource,
+  structure: CodexProjectStructure
+): CodexProjectStructure['projects'][number] | undefined {
+  const id = source.projectId
+    ? (structure.projectAliases?.[source.projectId] ?? source.projectId)
+    : undefined
+  const known = structure.projects.find((project) => project.id === id)
+  if (known) {
+    return known
+  }
+  const normalize = (path: string) =>
+    normalizeRuntimePathForComparison(stripWin32LongPathPrefix(path))
+  const roots = structure.projects.filter(
+    (project) => normalize(project.paths[0] ?? '') === normalize(source.path)
+  )
+  return roots.length === 1 ? roots[0] : undefined
+}
+
+export function sidebarWorkspaceTitle(
+  workspace: Pick<
+    Worktree,
+    'path' | 'hostId' | 'displayName' | 'displayNameMode' | 'branch' | 'isMainWorktree'
+  >,
+  sources: readonly SidebarChatSource[],
+  structure: CodexProjectStructure,
+  fallback: string
+): string {
+  const basename = workspace.path
+    .replace(/[\\/]+$/, '')
+    .split(/[\\/]/)
+    .at(-1)
+  const automatic =
+    workspace.displayNameMode !== 'fixed' &&
+    (!workspace.displayName ||
+      workspace.displayName === basename ||
+      (workspace.isMainWorktree &&
+        workspace.displayName ===
+          automaticWorktreeDisplayName({
+            branch: workspace.branch,
+            path: workspace.path,
+            projectName: undefined
+          })))
+  if ((workspace.hostId && workspace.hostId !== 'local') || !automatic) {
+    return fallback
+  }
+  const names = new Set(
+    sources
+      .filter((source) => source.agent === 'codex' && source.executionHostId === 'local')
+      .flatMap((source) => {
+        const name = sidebarSourceCodexProject(source, structure)?.name.trim()
+        return name ? [name] : []
+      })
+  )
+  return names.size === 1 ? [...names][0]! : fallback
 }
 
 /** Explicit Codex membership wins over cwd; Claude uses the most specific mapped folder. */
@@ -63,16 +126,7 @@ export function mappedSidebarChatWorkspace(
       const projectId = source.projectId
         ? (structure.projectAliases?.[source.projectId] ?? source.projectId)
         : undefined
-      const knownProject = structure.projects.find((project) => project.id === projectId)
-      const matchingRoots = knownProject
-        ? []
-        : structure.projects.filter(
-            (project) =>
-              normalizeRuntimePathForComparison(
-                stripWin32LongPathPrefix(project.paths[0] ?? '')
-              ) === normalizeRuntimePathForComparison(stripWin32LongPathPrefix(source.path))
-          )
-      const project = knownProject ?? (matchingRoots.length === 1 ? matchingRoots[0] : undefined)
+      const project = sidebarSourceCodexProject(source, structure)
       if (explicitProject) {
         if (projectId === explicitProject || project?.id === explicitProject) {
           return workspaceId

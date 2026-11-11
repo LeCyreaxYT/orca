@@ -227,8 +227,7 @@ export function createCodexHistoryCollector(
         ['completed', 'failed', 'declined', 'interrupted'].includes(String(item.status))
       const first =
         old?.firstTerminal ?? (terminal && turn?.complete ? descriptor.ordinal : undefined)
-      const start = payload.started_at_ms,
-        end = payload.completed_at_ms
+      const { started_at_ms: start, completed_at_ms: end } = payload
       const newlyInterrupted =
         item.type === 'commandExecution' &&
         item.source === 'unifiedExecStartup' &&
@@ -275,7 +274,10 @@ export function createCodexHistoryCollector(
             }
           : { kind: 'thread' }
       }
-      if (item.type === 'userMessage' && turn) {
+      const opener =
+        item.type === 'userMessage' &&
+        (!turn?.userItemId || turn.userItemId === agentJournalItemKey(row.identity))
+      if (opener && turn) {
         turn.userItemId = agentJournalItemKey(row.identity)
         remember(turnKey, { turn })
         turnRow(turn)
@@ -284,7 +286,7 @@ export function createCodexHistoryCollector(
         rowKey,
         row,
         root,
-        item.type === 'userMessage'
+        opener
           ? -Infinity
           : typeof start === 'number' && Number.isFinite(start)
             ? start
@@ -292,7 +294,7 @@ export function createCodexHistoryCollector(
               ? end
               : lastRecordAt,
         payload.type === 'item_completed',
-        item.type === 'userMessage' ? 'opener' : 'item'
+        opener ? 'opener' : 'item'
       )
     },
     items: () => placement.items(window.items())
