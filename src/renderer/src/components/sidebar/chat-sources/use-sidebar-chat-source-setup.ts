@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useAppStore } from '@/store'
-import { useAllWorktrees } from '@/store/slices/worktrees/listing/use-worktree-catalog'
+import { useSidebarChatWorkspaces } from './use-sidebar-chat-workspaces'
 import { normalizeRuntimePathForComparison } from '../../../../../shared/cross-platform-path'
 import type { SidebarChatSource } from '../../../../../shared/sidebar-chat-groups'
 import { useSidebarChatHistory } from './sidebar-chat-history-store'
@@ -11,7 +11,7 @@ export function useSidebarChatSourceSetup() {
   const configured = useAppStore((state) =>
     Object.values(state.sidebarChatGroupsByWorktree).some((group) => group.sources !== undefined)
   )
-  const workspaces = useAllWorktrees()
+  const workspaces = useSidebarChatWorkspaces()
   const candidatesKey = JSON.stringify(
     workspaces
       .filter(

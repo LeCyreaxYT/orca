@@ -6,6 +6,7 @@ import type { AiVaultListResult } from '../../../shared/ai-vault/contracts/ai-va
 import { readAiVaultFirstUserPrompt } from '../session-first-user-prompt-read'
 import {
   flushSessionParseCachePersist,
+  readSessionParseCacheMetadata,
   initSessionParseCachePersistence
 } from '../parse-cache/session-parse-cache-persistence'
 import { scanAiVaultSessions } from '../session-scanner'
@@ -85,6 +86,9 @@ async function executeRequest(request: AiVaultServiceRequest): Promise<AiVaultSe
     }
     if (sessionSearch.handles(request)) {
       return await sessionSearch.execute(request, controller.signal)
+    }
+    if (request.operation === 'cachedList') {
+      return { operation: 'cachedList', value: readSessionParseCacheMetadata() }
     }
     if (request.operation === 'titles') {
       const requests = await resolveHostReadableAiVaultTitleRequests(

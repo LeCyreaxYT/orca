@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { createNonSecureContextUuid as createBrowserUuid } from '../../../../../../shared/non-secure-context-uuid'
-import { Check, Ellipsis, FolderPlus, Pencil, Pin, Trash2 } from 'lucide-react'
+import { Check, Ellipsis, FolderInput, FolderPlus, Pencil, Pin, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -9,6 +9,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { useTranslate } from '@/i18n/use-translate'
@@ -18,6 +21,7 @@ import {
   PINNED_CHAT_GROUP,
   type SidebarChatGroupEdit
 } from '../../../../../../shared/sidebar-chat-groups'
+import { useSidebarChatWorkspaces } from '../../chat-sources/use-sidebar-chat-workspaces'
 
 export type SidebarChatGroupOption = { id: string; name: string }
 
@@ -126,6 +130,13 @@ export function SidebarChatRowMenu({
 }) {
   const t = useTranslate()
   const edit = useAppStore((state) => state.editSidebarChatGroup)
+  const moveWorkspace = useAppStore((state) => state.moveSidebarChatToWorkspace)
+  const workspaces = useSidebarChatWorkspaces()
+  const host = workspaces.find((workspace) => workspace.id === worktreeId)?.hostId ?? 'local'
+  const destinations = workspaces.filter(
+    (workspace) =>
+      workspace.id !== worktreeId && !workspace.isArchived && (workspace.hostId ?? 'local') === host
+  )
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -166,6 +177,30 @@ export function SidebarChatRowMenu({
               {option.name}
             </DropdownMenuItem>
           ))}
+        {destinations.length > 0 ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <FolderInput className="size-3.5" />
+                {t('sidebar.chatGroups.moveWorkspace', 'Move to workspace')}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <div className="max-h-72 overflow-y-auto scrollbar-sleek">
+                  {destinations.map((workspace) => (
+                    <DropdownMenuItem
+                      key={workspace.id}
+                      onSelect={() => moveWorkspace(worktreeId, workspace.id, chatId)}
+                      title={workspace.path}
+                    >
+                      <span className="max-w-64 truncate">{workspace.displayName}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </div>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          </>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -24,19 +24,16 @@ import { useSidebarWorkspaceHistory } from '../../chat-sources/use-sidebar-works
 import { useSidebarChatHistory } from '../../chat-sources/sidebar-chat-history-store'
 import { SidebarHistoryChatRow } from '../../chat-sources/SidebarHistoryChatRow'
 import { sidebarHistoryChatId } from '../../../../../../shared/sidebar-chat-sources'
-import type { AiVaultSession } from '../../../../../../shared/ai-vault/contracts/ai-vault-types'
 import {
   sidebarChatGroup,
   sidebarChatIdentity,
+  sortSidebarChats,
+  type SidebarChatItem,
   visibleSidebarChats
 } from './sidebar-chat-group-model'
 
 const NO_FOCUS: ReadonlySet<string> = new Set()
 const NO_SIGNALS: ReadonlyMap<string, AgentDotState> = new Map()
-type ChatItem =
-  | { agent: DashboardAgentRow; session?: never }
-  | { session: AiVaultSession; agent?: never }
-
 export function SidebarChatGroups({
   worktreeId,
   agents,
@@ -62,7 +59,10 @@ export function SidebarChatGroups({
     const represented = new Set(agents.map(sidebarChatIdentity))
     return workspaceHistory.filter((session) => !represented.has(sidebarHistoryChatId(session)))
   }, [agents, workspaceHistory])
-  const pinned = useSidebarChatHistory((store) => store.structure.pinned)
+  const structure = useSidebarChatHistory((store) => store.structure)
+  const pinned = structure.pinned
+  const sessionsById = useSidebarChatHistory((store) => store.sessionsById)
+  const sortBy = useAppStore((store) => store.sortBy)
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set())
   const edit = (change: Parameters<typeof editGroup>[1]) => editGroup(worktreeId, change)
   const options = useMemo(
@@ -74,7 +74,7 @@ export function SidebarChatGroups({
     [state.groups, t]
   )
   const groups = useMemo(() => {
-    const buckets = new Map<string, ChatItem[]>(options.map((option) => [option.id, []]))
+    const buckets = new Map<string, SidebarChatItem[]>(options.map((option) => [option.id, []]))
     for (const agent of agents) {
       const groupId = sidebarChatGroup(agent, state, pinned)
       ;(buckets.get(groupId) ?? buckets.get(GENERAL_CHAT_GROUP)!).push({
@@ -91,21 +91,21 @@ export function SidebarChatGroups({
           : GENERAL_CHAT_GROUP)
       ;(buckets.get(groupId) ?? buckets.get(GENERAL_CHAT_GROUP)!).push({ session })
     }
-    const updatedAt = (row: ChatItem) =>
-      row.agent
-        ? row.agent.entry.updatedAt
-        : Date.parse(row.session.updatedAt ?? row.session.modifiedAt)
     return options
       .map((option) => ({
         ...option,
-        rows: buckets.get(option.id)!.sort((a, b) => updatedAt(b) - updatedAt(a))
+        rows: sortSidebarChats(buckets.get(option.id)!, {
+          sortBy,
+          sessions: sessionsById,
+          structure
+        })
       }))
       .filter(
         (group) =>
           (pinnedOnly ? group.id === PINNED_CHAT_GROUP : group.id !== PINNED_CHAT_GROUP) &&
           (group.rows.length > 0 || state.groups.some((custom) => custom.id === group.id))
       )
-  }, [agents, history, pinned, state, options, pinnedOnly])
+  }, [agents, history, pinned, state, options, pinnedOnly, sortBy, sessionsById, structure])
   return (
     <SidebarChatDragProvider onMove={(chatId, groupId) => edit({ kind: 'move', chatId, groupId })}>
       <div

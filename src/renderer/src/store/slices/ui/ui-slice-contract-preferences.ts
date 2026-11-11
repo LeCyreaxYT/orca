@@ -107,6 +107,7 @@ export type UISlicePreferences = {
   agentActivityDisplayMode: AgentActivityDisplayMode
   sidebarChatGroupsByWorktree: SidebarChatGroupsByWorktree
   editSidebarChatGroup: (worktreeId: string, edit: SidebarChatGroupEdit) => void
+  moveSidebarChatToWorkspace: (fromId: string, toId: string, chatId: string) => void
   setAgentActivityDisplayMode: (mode: AgentActivityDisplayMode) => void
   workspaceStatuses: WorkspaceStatusDefinition[]
   setWorkspaceStatuses: (statuses: WorkspaceStatusDefinition[]) => void

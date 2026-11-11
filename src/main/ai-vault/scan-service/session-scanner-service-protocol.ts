@@ -27,6 +27,7 @@ export type AiVaultServiceScanOptions = Omit<AiVaultScanOptions, 'signal'>
 export type AiVaultServiceLane = 'cache' | 'interactive'
 export type AiVaultServiceOperation =
   | 'scan'
+  | 'cachedList'
   | 'titles'
   | 'subagents'
   | 'firstPrompt'
@@ -37,6 +38,7 @@ export type AiVaultServiceOperation =
 
 const AI_VAULT_SERVICE_OPERATIONS: ReadonlySet<string> = new Set<AiVaultServiceOperation>([
   'scan',
+  'cachedList',
   'titles',
   'subagents',
   'firstPrompt',
@@ -67,6 +69,7 @@ export type AiVaultServiceInit = {
 
 export type AiVaultServiceRequestBody =
   | { type: 'request'; operation: 'scan'; options: AiVaultServiceScanOptions }
+  | { type: 'request'; operation: 'cachedList' }
   | {
       type: 'request'
       operation: 'titles'
@@ -112,6 +115,7 @@ export type AiVaultServiceParentMessage =
   | { type: 'wslDistroNote'; kind: 'stopped' | 'woken'; distro: string }
 
 export type AiVaultServiceResultValue =
+  | { operation: 'cachedList'; value: AiVaultListResult }
   | {
       operation: 'scan'
       // Throttled progress may omit the final work tally.

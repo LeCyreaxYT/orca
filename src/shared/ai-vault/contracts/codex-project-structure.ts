@@ -5,6 +5,9 @@ export const CodexProjectStructureSchema = z.object({
   assignments: z.record(z.string(), z.string()),
   pinned: z.array(z.string()),
   titles: z.record(z.string(), z.string()).optional(),
+  updatedAt: z.record(z.string(), z.number().finite().nonnegative()).optional(),
+  projectAliases: z.record(z.string(), z.string()).optional(),
+  projectless: z.array(z.string()).optional(),
   available: z.boolean()
 })
 export type CodexProjectStructure = z.infer<typeof CodexProjectStructureSchema>

@@ -20,7 +20,7 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { useAllWorktrees } from '@/store/slices/worktrees/listing/use-worktree-catalog'
+import { useSidebarChatWorkspaces } from './use-sidebar-chat-workspaces'
 import { useAppStore } from '@/store'
 import { useTranslate } from '@/i18n/use-translate'
 import {
@@ -205,7 +205,7 @@ export function SidebarChatMappingDialog() {
   const [structure, setStructure] = useState(EMPTY_CODEX_PROJECT_STRUCTURE)
   const [choices, setChoices] = useState<MappingChoice[]>([])
   const [claudeFolders, setClaudeFolders] = useState<ClaudeChoice[]>([])
-  const allWorktrees = useAllWorktrees()
+  const allWorktrees = useSidebarChatWorkspaces()
   const workspaces = allWorktrees.filter(
     (workspace) => !workspace.isArchived && (!workspace.hostId || workspace.hostId === 'local')
   )

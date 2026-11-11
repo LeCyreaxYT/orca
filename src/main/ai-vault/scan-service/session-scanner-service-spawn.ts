@@ -100,6 +100,12 @@ export function resolveAiVaultSessionTitlesInService(
   return getSharedClient().request({ type: 'request', operation: 'titles', requests }, signal)
 }
 
+export function readCachedAiVaultSessionsInService(
+  signal?: AbortSignal
+): Promise<AiVaultListResult> {
+  return getSharedClient().request({ type: 'request', operation: 'cachedList' }, signal)
+}
+
 export function listAiVaultSubagentSessionsInService(
   request: AiVaultServiceSubagentRequest,
   signal?: AbortSignal

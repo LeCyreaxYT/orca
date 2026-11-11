@@ -263,6 +263,7 @@
       "save": "Save group",
       "add": "New group",
       "move": "Move chat",
+      "moveWorkspace": "Move to workspace",
       "pin": "Pin chat",
       "unpin": "Unpin chat",
       "rename": "Rename group",

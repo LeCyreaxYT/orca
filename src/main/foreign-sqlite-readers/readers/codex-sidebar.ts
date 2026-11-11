@@ -8,7 +8,8 @@ const Threads = z.array(
     id: z.string(),
     project_id: z.string().nullable(),
     name: z.string().nullable(),
-    title: z.string()
+    title: z.string(),
+    updatedAt: z.number().nullable().optional()
   })
 )
 const Pins = z.array(z.object({ id: z.string() }))
@@ -64,10 +65,17 @@ export function readCodexSidebarDatabase(db: SyncDatabase): CodexSidebarResult {
         projects.push({ id: row.id, name: row.name, paths: [row.path] })
       }
     }
+    const updatedAt = columns.has('updated_at_ms')
+      ? columns.has('updated_at')
+        ? ', COALESCE(updated_at_ms, updated_at * 1000) AS updatedAt'
+        : ', updated_at_ms AS updatedAt'
+      : columns.has('updated_at')
+        ? ', updated_at * 1000 AS updatedAt'
+        : ''
     const threads = Threads.parse(
       db
         .prepare(
-          `SELECT id, project_id, ${columns.has('name') ? 'name' : 'NULL AS name'}, title FROM threads WHERE archived = 0`
+          `SELECT id, project_id, ${columns.has('name') ? 'name' : 'NULL AS name'}, title${updatedAt} FROM threads WHERE archived = 0`
         )
         .all()
     )
@@ -89,7 +97,21 @@ export function readCodexSidebarDatabase(db: SyncDatabase): CodexSidebarResult {
         pinned,
         titles: Object.fromEntries(
           threads.map((thread) => [thread.id, thread.name?.trim() || thread.title])
-        )
+        ),
+        ...(updatedAt
+          ? {
+              updatedAt: Object.fromEntries(
+                threads.flatMap((thread) =>
+                  thread.updatedAt !== null &&
+                  thread.updatedAt !== undefined &&
+                  Number.isFinite(thread.updatedAt) &&
+                  thread.updatedAt >= 0
+                    ? [[thread.id, thread.updatedAt]]
+                    : []
+                )
+              )
+            }
+          : {})
       }
     }
   } finally {

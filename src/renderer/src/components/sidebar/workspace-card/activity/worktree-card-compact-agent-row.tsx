@@ -13,7 +13,7 @@ import { agentRowDisplayDotState as getAgentDotState } from '../../../../lib/age
 import { getAgentRowPrimaryText } from '../../../../../../shared/agent-status/presentation/agent-row-primary-text'
 import { formatAgentToolPreview } from '@/lib/agent-status/presentation/agent-row-tool-preview'
 import { agentNoUpdateLabel } from '../../../../../../shared/agent-status/presentation/agent-row-decay-state'
-import { useAgentRowConversationName } from '@/components/dashboard/use-agent-row-conversation-name'
+import { useSidebarChatName } from '../../chat-sources/use-sidebar-chat-name'
 import { lastEnteredDoneAt } from '@/components/dashboard/agent-finished-timestamp'
 import CacheTimer, { usePromptCacheCountdownForPane } from './CacheTimer'
 import { formatShortTimeAgo } from '@/lib/short-time-ago'
@@ -149,7 +149,7 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
           ['waiting', 'blocked', 'permission', 'failed', 'unconfirmed'].includes(state)
       )
     : dotState
-  const conversationName = useAgentRowConversationName(agent)
+  const conversationName = useSidebarChatName(agent)
   const primary = getCompactAgentPrimary(agent, conversationName)
   const isLineageChild = agent.lineage?.depth === 1
   // Hold assistant text per positive turn clock; commit in an effect so discarded renders cannot cache messages.
@@ -257,7 +257,7 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
           ) : null}
           {!hideIcon && !(titleOnly && isLineageChild) && (
             <span className="inline-flex shrink-0" title={formatAgentTypeLabel(agent.agentType)}>
-              <AgentTypeIcon agentType={agent.agentType} size={13} />
+              <AgentTypeIcon agentType={agent.agentType} size={14} />
             </span>
           )}
           <span
@@ -287,8 +287,16 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
       )}
       {hasChildDisclosure && !childAgentsExpanded && (
         <span
+          title={t(
+            'auto.components.dashboard.DashboardAgentChildDisclosure.showChildAgents',
+            'Show {{count}} child agents',
+            {
+              count: childAgentCount,
+              defaultValue_one: 'Show {{count}} child agent'
+            }
+          )}
           className={cn(
-            'inline-flex shrink-0 items-center gap-0.5 text-[10px] tabular-nums',
+            'inline-flex shrink-0 items-center gap-0.5 text-3xs tabular-nums',
             highlighted ? 'text-foreground/70' : 'text-muted-foreground/70'
           )}
         >

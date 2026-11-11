@@ -14,6 +14,7 @@ import {
   invalidateAiVaultServiceCache,
   listAiVaultSubagentSessionsInService,
   readAiVaultFirstUserPromptInService,
+  readCachedAiVaultSessionsInService,
   resetAiVaultScannerServiceForTests,
   resolveAiVaultSessionTitlesInService,
   scanAiVaultSessionsInService
@@ -36,6 +37,12 @@ export function scanAiVaultSessionsInBackground(
   progress?: LocalAiVaultScanProgressHandle
 ): Promise<AiVaultListResult> {
   return scanAiVaultSessionsInService(options, signal, progress)
+}
+
+export function readCachedAiVaultSessionsInBackground(
+  signal?: AbortSignal
+): Promise<AiVaultListResult> {
+  return readCachedAiVaultSessionsInService(signal)
 }
 
 export function resolveAiVaultSessionTitlesInBackground(

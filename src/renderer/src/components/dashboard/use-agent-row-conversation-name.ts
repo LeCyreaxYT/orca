@@ -27,7 +27,10 @@ function getIndexedTab(
   return tabIndex.get(tabId)
 }
 
-export function useAgentRowConversationName(agent: DashboardAgentRow): string | null {
+export function useAgentRowConversationName(
+  agent: DashboardAgentRow,
+  providerName?: string
+): string | null {
   const parentPaneKey = agent.entry.orchestration?.parentPaneKey
   const usesParentTab =
     agent.lineage?.depth === 1 &&
@@ -66,9 +69,16 @@ export function useAgentRowConversationName(agent: DashboardAgentRow): string | 
   }
   const structuredName =
     structuredTab &&
-    structuredChatDisplayName(structuredTab.customLabel, conversationName, structuredTab.label)
+    structuredChatDisplayName(
+      structuredTab.customLabel,
+      providerName ?? conversationName,
+      structuredTab.label
+    )
   if (structuredName) {
     return structuredName
+  }
+  if (providerName && !(liveTab ?? agent.tab).customTitle) {
+    return providerName
   }
   // Why: retained row snapshots need a fallback after their live tab disappears.
   return getAgentRowConversationName(

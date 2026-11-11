@@ -86,10 +86,13 @@ async function openSidebarHistoryChat({
       }
     }
     const state = useAppStore.getState()
+    const origin =
+      state.sidebarChatGroupsByWorktree[worktreeId]?.origins?.[sidebarHistoryChatId(session)]
+    const resumeWorktreeId = origin ?? worktreeId
     const eligibility = resolveAiVaultSessionResumeInChatForWorkspace({
       session,
-      resumeState: { blocked: false, worktreeId, usesSessionWorktree: true },
-      activeWorkspaceId: worktreeId,
+      resumeState: { blocked: false, worktreeId: resumeWorktreeId, usesSessionWorktree: true },
+      activeWorkspaceId: resumeWorktreeId,
       targetState: state,
       settings: state.settings
     })
@@ -97,7 +100,7 @@ async function openSidebarHistoryChat({
       await resumeAiVaultSessionInNewChat(
         session,
         session.agent,
-        worktreeId,
+        resumeWorktreeId,
         newAgentLaunchRequestId()
       )
     } else {

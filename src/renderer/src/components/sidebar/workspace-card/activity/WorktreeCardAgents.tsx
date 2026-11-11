@@ -1,5 +1,5 @@
 import { useWorktreeAgentSendTargets } from './use-worktree-agent-send-targets'
-import { useWorktreeAgentActivation } from './use-worktree-agent-activation'
+import { activateWorktreeAgentPane } from './use-worktree-agent-activation'
 import { SidebarChatGroups } from './SidebarChatGroups'
 import React, { useCallback, useMemo, useRef } from 'react'
 import { useAppStore } from '@/store'
@@ -9,7 +9,7 @@ import { useWorktreeAgentRows } from './useWorktreeAgentRows'
 import { useWorktreeAgentDisplay } from './use-worktree-agent-display'
 import { cn } from '@/lib/utils'
 import type { DashboardAgentRow as DashboardAgentRowData } from '@/components/dashboard/useDashboardData'
-import { useFocusedAgentPaneKey } from './focused-agent-row-highlight'
+import { getFocusedAgentPaneKeyForWorktree } from './focused-agent-row-highlight'
 import { CompactAgentExpansion, CompactAgentSummaryButton } from './worktree-card-compact-agents'
 import { CompactAgentRow } from './worktree-card-compact-agent-row'
 import { buildAgentRowLineageTree } from '@/components/dashboard/agent-row-lineage-model'
@@ -30,9 +30,10 @@ import {
 } from './worktree-card-idle-child-agents'
 import {
   EMPTY_SIDEBAR_CHAT_GROUPS,
+  manualSidebarChatWorkspace,
   PINNED_CHAT_GROUP
 } from '../../../../../../shared/sidebar-chat-groups'
-import { sidebarChatGroup } from './sidebar-chat-group-model'
+import { sidebarChatGroup, sidebarChatIdentity } from './sidebar-chat-group-model'
 import { useSidebarChatHistory } from '../../chat-sources/sidebar-chat-history-store'
 
 export { SUPPRESS_WORKTREE_LIST_SCROLL_ADJUSTMENT_EVENT } from './worktree-agent-list-reveal'
@@ -52,8 +53,18 @@ const WorktreeCardAgents = React.memo(function WorktreeCardAgents({
   pinnedOnly = false
 }: Props) {
   useUiLanguageRevision()
-  const selectedAgents = useWorktreeAgentRows(worktreeId, precomputedAgents === undefined)
-  const agents = precomputedAgents ?? selectedAgents
+  const origins = useAppStore((state) => state.sidebarChatGroupsByWorktree[worktreeId]?.origins)
+  const additionalOwners = useMemo(
+    () => [...new Set(Object.values(origins ?? {}))].filter((id) => id !== worktreeId),
+    [origins, worktreeId]
+  )
+  const selectedAgents = useWorktreeAgentRows(
+    worktreeId,
+    precomputedAgents === undefined || additionalOwners.length > 0,
+    additionalOwners
+  )
+  const agents =
+    additionalOwners.length > 0 ? selectedAgents : (precomputedAgents ?? selectedAgents)
   if (agents.length === 0) {
     return (
       <SidebarChatGroups
@@ -89,9 +100,16 @@ const WorktreeCardAgentsBody = React.memo(function WorktreeCardAgentsBody({
   const { agentActivityDisplayMode, showAgentModels } = useWorktreeAgentDisplay()
   const dropAgentStatus = useAppStore((s) => s.dropAgentStatus)
   const dismissRetainedAgent = useAppStore((s) => s.dismissRetainedAgent)
+  const owners = useMemo(
+    () => new Map(agents.map((agent) => [agent.paneKey, agent.tab.worktreeId])),
+    [agents]
+  )
+  const sourceWorkspaceIds = useMemo(() => [...new Set(owners.values())], [owners])
   const { isAgentSendTargetModeActive, handleSendTargetClick, sendTargetFor } =
-    useWorktreeAgentSendTargets(worktreeId)
-  const focusedAgentPaneKey = useFocusedAgentPaneKey(worktreeId)
+    useWorktreeAgentSendTargets(worktreeId, sourceWorkspaceIds)
+  const focusedAgentPaneKey = useAppStore((state) =>
+    getFocusedAgentPaneKeyForWorktree(state, state.activeWorktreeId ?? worktreeId)
+  )
   const compactAgentListRootRef = useRef<HTMLDivElement | null>(null)
 
   const unvisitedByPaneKey = useWorktreeAgentUnread(agents)
@@ -104,10 +122,15 @@ const WorktreeCardAgentsBody = React.memo(function WorktreeCardAgentsBody({
     [dropAgentStatus, dismissRetainedAgent]
   )
 
-  const handleActivateAgentTab = useWorktreeAgentActivation(worktreeId)
+  const handleActivateAgentTab = useCallback(
+    (tabId: string, paneKey: string) =>
+      activateWorktreeAgentPane(owners.get(paneKey) ?? worktreeId, tabId, paneKey),
+    [owners, worktreeId]
+  )
   const handleActivateRetainedAgent = useCallback(
-    (tabId: string, paneKey: string) => activateRetainedAgentRow(worktreeId, tabId, paneKey),
-    [worktreeId]
+    (tabId: string, paneKey: string) =>
+      activateRetainedAgentRow(owners.get(paneKey) ?? worktreeId, tabId, paneKey),
+    [owners, worktreeId]
   )
 
   const now = useNow(30_000)
@@ -117,14 +140,28 @@ const WorktreeCardAgentsBody = React.memo(function WorktreeCardAgentsBody({
     (state) => state.sidebarChatGroupsByWorktree[worktreeId] ?? EMPTY_SIDEBAR_CHAT_GROUPS
   )
   const providerPins = useSidebarChatHistory((state) => state.structure.pinned)
+  const mappings = useAppStore((state) => state.sidebarChatGroupsByWorktree)
   const rootAgents = useMemo(
     () =>
-      agentActivityDisplayMode === 'compact' && !pinnedOnly
-        ? allRootAgents.filter(
-            (agent) => sidebarChatGroup(agent, chatGroups, providerPins) !== PINNED_CHAT_GROUP
+      allRootAgents.filter(
+        (agent) =>
+          (manualSidebarChatWorkspace(sidebarChatIdentity(agent), mappings) ??
+            agent.tab.worktreeId) === worktreeId &&
+          !(
+            agentActivityDisplayMode === 'compact' &&
+            !pinnedOnly &&
+            sidebarChatGroup(agent, chatGroups, providerPins) === PINNED_CHAT_GROUP
           )
-        : allRootAgents,
-    [allRootAgents, chatGroups, providerPins, agentActivityDisplayMode, pinnedOnly]
+      ),
+    [
+      allRootAgents,
+      chatGroups,
+      providerPins,
+      agentActivityDisplayMode,
+      pinnedOnly,
+      mappings,
+      worktreeId
+    ]
   )
   const hasLineage = childrenByParentPaneKey.size > 0
   const collapsedChildAgentSignalStates = useMemo(

@@ -1,7 +1,7 @@
 import { installWindowVisibilityInterval } from '@/lib/window-visibility-interval'
 import { useEffect } from 'react'
 import { useAppStore } from '@/store'
-import { useSidebarChatHistory } from './sidebar-chat-history-store'
+import { publishSidebarChatHistory, useSidebarChatHistory } from './sidebar-chat-history-store'
 import type { AiVaultSession } from '../../../../../shared/ai-vault/contracts/ai-vault-types'
 import type { SidebarChatSource } from '../../../../../shared/sidebar-chat-groups'
 import { useSidebarChatSourceSetup } from './use-sidebar-chat-source-setup'
@@ -23,12 +23,14 @@ export function SidebarChatHistorySync() {
 function installSidebarChatHistorySync(sourcesKey: string) {
   const sources: SidebarChatSource[] = JSON.parse(sourcesKey)
   if (!sources.length) {
-    useSidebarChatHistory.setState({ sessions: [], loading: false, error: null })
+    publishSidebarChatHistory([])
+    useSidebarChatHistory.setState({ loading: false })
     return
   }
   let disposed = false
   let pending = false
   let token: string | undefined
+  let restoreCached = useSidebarChatHistory.getState().sessions.length === 0
   const refresh = async () => {
     if (disposed || pending) {
       return
@@ -37,6 +39,24 @@ function installSidebarChatHistorySync(sourcesKey: string) {
     useSidebarChatHistory.setState({ loading: true })
     try {
       const structure = await window.api.aiVault.codexProjectStructure()
+      if (restoreCached && sources.some((source) => source.executionHostId === 'local')) {
+        restoreCached = false
+        token = `sidebar-history:${createBrowserUuid()}`
+        const cached = await window.api.aiVault
+          .listSessions({
+            executionHostScope: 'local',
+            cachedOnly: true,
+            unlimited: true,
+            requestToken: token
+          })
+          .catch(() => null)
+        if (disposed) {
+          return
+        }
+        if (cached && !cached.cancelled && cached.sessions.length > 0) {
+          publishSidebarChatHistory(sidebarSessions(cached.sessions), structure)
+        }
+      }
       const sessions: AiVaultSession[] = []
       for (const host of new Set(sources.map((source) => source.executionHostId))) {
         if (disposed) {
@@ -53,19 +73,16 @@ function installSidebarChatHistorySync(sourcesKey: string) {
             )
           ],
           unlimited: true,
+          metadataOnly: true,
           requestToken: token
         })
         if (result.cancelled) {
           return
         }
-        sessions.push(
-          ...result.sessions.filter(
-            (session) => !session.subagent && ['codex', 'claude'].includes(session.agent)
-          )
-        )
+        sessions.push(...sidebarSessions(result.sessions))
       }
       if (!disposed) {
-        useSidebarChatHistory.setState({ sessions, structure, error: null })
+        publishSidebarChatHistory(sessions, structure)
       }
     } catch (error) {
       if (!disposed) {
@@ -96,4 +113,10 @@ function installSidebarChatHistorySync(sourcesKey: string) {
       void window.api.aiVault.cancelListSessions({ requestToken: token }).catch(console.error)
     }
   }
+}
+
+function sidebarSessions(sessions: readonly AiVaultSession[]): AiVaultSession[] {
+  return sessions.filter(
+    (session) => !session.subagent && ['codex', 'claude'].includes(session.agent)
+  )
 }

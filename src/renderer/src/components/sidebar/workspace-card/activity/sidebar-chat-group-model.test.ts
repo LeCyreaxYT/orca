@@ -1,6 +1,10 @@
 import { expect, it } from 'vitest'
 import type { DashboardAgentRow } from '@/components/dashboard/useDashboardData'
-import { visibleSidebarChats } from './sidebar-chat-group-model'
+import {
+  sidebarChatIdentity,
+  sortSidebarChats,
+  visibleSidebarChats
+} from './sidebar-chat-group-model'
 
 function row(id: string): DashboardAgentRow {
   return {
@@ -38,4 +42,35 @@ it('keeps the selected chat and a parent with active children visible beyond the
       (agent) => agent.paneKey
     )
   ).toEqual(['one', 'two', 'three', 'four', 'five', 'selected', 'parent'])
+})
+
+it('sorts resumed chats by provider activity instead of import time and obeys name sorting', () => {
+  const older = row('older')
+  older.tab.aiVaultTitle = { agent: 'codex', sessionId: 'old-provider', title: 'old prompt' }
+  older.entry.updatedAt = 9_999
+  const newer = row('newer')
+  newer.tab.aiVaultTitle = { agent: 'codex', sessionId: 'new-provider', title: 'new prompt' }
+  const rows = [{ agent: older }, { agent: newer }]
+  const options = {
+    sessions: new Map(),
+    structure: {
+      projects: [],
+      assignments: {},
+      pinned: [],
+      available: true,
+      titles: { 'old-provider': 'Alpha', 'new-provider': 'Zulu' },
+      updatedAt: { 'old-provider': 100, 'new-provider': 200 }
+    }
+  }
+  expect(
+    sortSidebarChats(rows, { ...options, sortBy: 'recent' }).map(
+      (item) => item.agent && sidebarChatIdentity(item.agent)
+    )
+  ).toEqual([
+    '["history","local","codex","new-provider"]',
+    '["history","local","codex","old-provider"]'
+  ])
+  expect(
+    sortSidebarChats(rows, { ...options, sortBy: 'name' }).map((item) => item.agent?.paneKey)
+  ).toEqual(['older', 'newer'])
 })

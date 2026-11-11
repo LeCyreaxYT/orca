@@ -1,6 +1,6 @@
 import type { AiVaultSession } from './ai-vault/contracts/ai-vault-types'
 import type { CodexProjectStructure } from './ai-vault/contracts/codex-project-structure'
-import type { SidebarChatGroupsByWorktree } from './sidebar-chat-groups'
+import { manualSidebarChatWorkspace, type SidebarChatGroupsByWorktree } from './sidebar-chat-groups'
 import { isPathInsideOrEqual, normalizeRuntimePathForComparison } from './cross-platform-path'
 import { stripWin32LongPathPrefix } from './windows-path-access'
 
@@ -20,6 +20,18 @@ export function mappedSidebarChatWorkspace(
   if (session.subagent || !['codex', 'claude'].includes(session.agent)) {
     return null
   }
+  const manual = manualSidebarChatWorkspace(sidebarHistoryChatId(session), mappings)
+  if (
+    manual &&
+    workspaces.some(
+      (workspace) =>
+        workspace.id === manual &&
+        !workspace.isArchived &&
+        (workspace.hostId ?? 'local') === session.executionHostId
+    )
+  ) {
+    return manual
+  }
   if (
     session.structuredSession &&
     workspaces.some(
@@ -35,23 +47,34 @@ export function mappedSidebarChatWorkspace(
     session.executionHostId === 'local' && session.agent === 'codex'
       ? structure.assignments[session.sessionId]
       : undefined
+  if (
+    session.executionHostId === 'local' &&
+    session.agent === 'codex' &&
+    structure.projectless?.includes(session.sessionId)
+  ) {
+    return null
+  }
   let best: { workspaceId: string; length: number } | null = null
   for (const [workspaceId, state] of Object.entries(mappings)) {
     for (const source of state.sources ?? []) {
       if (source.agent !== session.agent || source.executionHostId !== session.executionHostId) {
         continue
       }
-      const knownProject = structure.projects.find((project) => project.id === source.projectId)
+      const projectId = source.projectId
+        ? (structure.projectAliases?.[source.projectId] ?? source.projectId)
+        : undefined
+      const knownProject = structure.projects.find((project) => project.id === projectId)
       const matchingRoots = knownProject
         ? []
         : structure.projects.filter(
             (project) =>
-              normalizeRuntimePathForComparison(project.paths[0] ?? '') ===
-              normalizeRuntimePathForComparison(source.path)
+              normalizeRuntimePathForComparison(
+                stripWin32LongPathPrefix(project.paths[0] ?? '')
+              ) === normalizeRuntimePathForComparison(stripWin32LongPathPrefix(source.path))
           )
       const project = knownProject ?? (matchingRoots.length === 1 ? matchingRoots[0] : undefined)
       if (explicitProject) {
-        if (source.projectId === explicitProject || project?.id === explicitProject) {
+        if (projectId === explicitProject || project?.id === explicitProject) {
           return workspaceId
         }
         continue

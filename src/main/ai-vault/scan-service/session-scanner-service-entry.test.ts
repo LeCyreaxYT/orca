@@ -13,7 +13,8 @@ vi.mock('../parse-cache/session-parse-cache-store', async (importOriginal) => ({
 vi.mock('../session-scanner', () => ({ scanAiVaultSessions }))
 vi.mock('../parse-cache/session-parse-cache-persistence', () => ({
   flushSessionParseCachePersist: vi.fn(() => Promise.resolve()),
-  initSessionParseCachePersistence: vi.fn()
+  initSessionParseCachePersistence: vi.fn(),
+  readSessionParseCacheMetadata: () => ({ sessions: [], issues: [], scannedAt: '2026-11-11' })
 }))
 vi.mock('../session-subagent-reader', () => ({
   listLocalAiVaultSubagentSessions: vi.fn(() => Promise.resolve({ sessions: [], issues: [] }))
@@ -39,6 +40,33 @@ describe('AI Vault service entry cache invalidation', () => {
     sent.length = 0
     invalidateSessionParseCacheEntry.mockClear()
     scanAiVaultSessions.mockResolvedValue({ sessions: [], issues: [], scannedAt: '2026-08-10' })
+  })
+
+  it('returns the saved overview while a full scan is still waiting', async () => {
+    let release: (() => void) | undefined
+    scanAiVaultSessions.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          release = () => resolve({ sessions: [], issues: [], scannedAt: '2026-11-11' })
+        })
+    )
+    emit({ type: 'request', id: 40, operation: 'scan', options: {} })
+    await vi.waitFor(() => expect(release).toBeDefined())
+    try {
+      emit({ type: 'request', id: 41, operation: 'cachedList' })
+      await vi.waitFor(() =>
+        expect(sent).toContainEqual({
+          type: 'result',
+          id: 41,
+          operation: 'cachedList',
+          value: { sessions: [], issues: [], scannedAt: '2026-11-11' }
+        })
+      )
+      expect(sent.some((message) => message.id === 40)).toBe(false)
+    } finally {
+      release?.()
+      await vi.waitFor(() => expect(sent.some((message) => message.id === 40)).toBe(true))
+    }
   })
 
   it('sends rate-limited progress under the running scan id, and none once it settles', async () => {

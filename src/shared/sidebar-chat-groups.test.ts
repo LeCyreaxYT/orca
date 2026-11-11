@@ -2,10 +2,31 @@ import { describe, expect, it } from 'vitest'
 import {
   editSidebarChatGroups,
   EMPTY_SIDEBAR_CHAT_GROUPS,
+  moveSidebarChatToWorkspace,
   normalizeSidebarChatGroups
 } from './sidebar-chat-groups'
 
 describe('sidebar chat organization', () => {
+  it('moves a chat once, preserves its original runtime workspace and persists a later return', () => {
+    const moved = moveSidebarChatToWorkspace(
+      {
+        scripts: { groups: [], assignments: { chat: 'pinned' }, collapsed: [] },
+        releases: { groups: [], assignments: {}, collapsed: [], workspaceCollapsed: true }
+      },
+      'scripts',
+      'releases',
+      'chat'
+    )
+    const restored = normalizeSidebarChatGroups(JSON.parse(JSON.stringify(moved)))
+    expect(restored.scripts.assignments).toEqual({})
+    expect(restored.releases.assignments).toEqual({ chat: 'general' })
+    expect(restored.releases.origins).toEqual({ chat: 'scripts' })
+    expect(restored.releases.workspaceCollapsed).toBe(false)
+    const returned = moveSidebarChatToWorkspace(restored, 'releases', 'scripts', 'chat')
+    expect(returned.releases.origins).toEqual({})
+    expect(returned.scripts.origins).toEqual({ chat: 'scripts' })
+  })
+
   it('restores a renamed group with the same chat membership after serialization', () => {
     let state = editSidebarChatGroups(EMPTY_SIDEBAR_CHAT_GROUPS, {
       kind: 'add',

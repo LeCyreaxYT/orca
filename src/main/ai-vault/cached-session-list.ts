@@ -4,6 +4,7 @@ import { claudeProfileHistoryDirs } from '../claude-accounts/claude-profile-inst
 import {
   clearAiVaultBackgroundRestartCircuit,
   resetAiVaultScannerBackgroundForTests,
+  readCachedAiVaultSessionsInBackground,
   scanAiVaultSessionsInBackground
 } from './scan-service/session-scanner-background'
 import { getCachedWslDistros, hasCachedWslDistros } from '../wsl/discovery/distro-catalog'
@@ -46,6 +47,7 @@ import {
   truncateAiVaultListResult,
   type AiVaultSessionDepth
 } from '../../shared/ai-vault/scanning/ai-vault-session-depth'
+import { aiVaultSessionListMetadata } from '../../shared/ai-vault/scanning/ai-vault-session-list-metadata'
 
 // Desktop and runtime RPC share this cache to avoid duplicate scans when mobile and desktop open together.
 const AI_VAULT_CACHE_TTL_MS = 60_000
@@ -142,6 +144,15 @@ export async function listAiVaultSessions(
   const depth = requestedAiVaultSessionDepth(args)
   const scanKey = aiVaultLocalScanKey(args)
   const now = Date.now()
+  if (args?.cachedOnly) {
+    const generation = cacheGeneration
+    const snapshot = await readCachedAiVaultSessionsInBackground(options.signal)
+    return truncateAiVaultListResult(
+      generation === cacheGeneration ? snapshot : { ...snapshot, sessions: [] },
+      depth,
+      args.scopePaths
+    )
+  }
   if (args?.force === true) {
     clearAiVaultBackgroundRestartCircuit()
   }
@@ -153,12 +164,15 @@ export async function listAiVaultSessions(
     cachedList.expiresAt > now &&
     aiVaultCachedDepthServes(cachedList.depth, depth, args?.scopePaths)
   ) {
-    return truncateAiVaultListResult(cachedList.result, depth, args?.scopePaths)
+    const result = truncateAiVaultListResult(cachedList.result, depth, args?.scopePaths)
+    return args?.metadataOnly
+      ? { ...result, sessions: result.sessions.map(aiVaultSessionListMetadata) }
+      : result
   }
   // Capture before the coordinator's start microtask so intervening invalidation still rejects the result.
   const startGeneration = cacheGeneration
   let progress: LocalAiVaultScanProgressHandle | null = null
-  return scanCoordinator.run({
+  const result = await scanCoordinator.run({
     // Isolate invalidated scans without changing the key used by progress readers.
     key: JSON.stringify({ scanKey, generation: startGeneration }),
     force: args?.force,
@@ -213,6 +227,9 @@ export async function listAiVaultSessions(
       return result
     }
   })
+  return args?.metadataOnly
+    ? { ...result, sessions: result.sessions.map(aiVaultSessionListMetadata) }
+    : result
 }
 
 /** Trust cached absence of any distro; otherwise a confirmed running list (E9). */

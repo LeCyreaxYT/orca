@@ -10,7 +10,7 @@ import {
   useSensors
 } from '@dnd-kit/core'
 import type { DashboardAgentRow } from '@/components/dashboard/useDashboardData'
-import { useAgentRowConversationName } from '@/components/dashboard/use-agent-row-conversation-name'
+import { useSidebarChatName } from '../../chat-sources/use-sidebar-chat-name'
 import { getAgentRowPrimaryText } from '../../../../../../shared/agent-status/presentation/agent-row-primary-text'
 import { cn } from '@/lib/utils'
 import { sidebarChatIdentity } from './sidebar-chat-group-model'
@@ -80,7 +80,7 @@ export function SidebarChatDraggable({
   agent: DashboardAgentRow
   children: ReactNode
 }) {
-  const title = useAgentRowConversationName(agent) ?? getAgentRowPrimaryText(agent.entry)
+  const title = useSidebarChatName(agent) ?? getAgentRowPrimaryText(agent.entry)
   return (
     <SidebarChatDraggableRow id={sidebarChatIdentity(agent)} title={title} rowKey={agent.paneKey}>
       {children}

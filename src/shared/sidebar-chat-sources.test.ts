@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { mappedSidebarChatWorkspace } from './sidebar-chat-sources'
+import { mappedSidebarChatWorkspace, sidebarHistoryChatId } from './sidebar-chat-sources'
 import {
   EMPTY_SIDEBAR_CHAT_GROUPS,
   type SidebarChatGroupsByWorktree,
@@ -75,6 +75,37 @@ it('keeps saved folder mappings when Codex migrates a project to a new ID', () =
   expect(mappedSidebarChatWorkspace(session({ sessionId: 'assigned' }), mappings, migrated)).toBe(
     'broad'
   )
+})
+
+it('uses migrated project aliases and keeps manual moves ahead of provider assignments', () => {
+  const chat = session({ sessionId: 'assigned' })
+  const configured = {
+    ...mappings,
+    scripts: { ...mappings.scripts, origins: { [sidebarHistoryChatId(chat)]: 'broad' } }
+  }
+  expect(
+    mappedSidebarChatWorkspace(chat, configured, structure, [{ id: 'broad' }, { id: 'scripts' }])
+  ).toBe('scripts')
+  expect(
+    mappedSidebarChatWorkspace(chat, configured, structure, [
+      { id: 'broad' },
+      { id: 'scripts', hostId: 'runtime:elsewhere' }
+    ])
+  ).toBe('broad')
+  expect(
+    mappedSidebarChatWorkspace(
+      chat,
+      {
+        releases: {
+          ...EMPTY_SIDEBAR_CHAT_GROUPS,
+          sources: [
+            { agent: 'codex', path: 'F:/other', projectId: 'native-id', executionHostId: 'local' }
+          ]
+        }
+      },
+      { ...structure, projectAliases: { 'native-id': 'changelog' } }
+    )
+  ).toBe('releases')
 })
 
 it('maps an unassigned Codex chat recorded with a Windows long-path prefix', () => {

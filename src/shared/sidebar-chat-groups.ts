@@ -19,6 +19,7 @@ const WorkspaceChatGroups = z.object({
     .array(z.object({ id: z.string().min(1).max(128), name: z.string().trim().min(1).max(80) }))
     .max(100),
   assignments: z.record(z.string(), z.string()),
+  origins: z.record(z.string(), z.string()).optional(),
   collapsed: z.array(z.string()).max(102),
   sources: z.array(SidebarChatSource).max(64).optional(),
   workspaceCollapsed: z.boolean().optional()
@@ -68,6 +69,50 @@ export function normalizeSidebarChatGroups(value: unknown): SidebarChatGroupsByW
 }
 
 export const SidebarChatGroupsParam = z.record(z.string(), WorkspaceChatGroups)
+
+export function manualSidebarChatWorkspace(
+  chatId: string,
+  states: SidebarChatGroupsByWorktree
+): string | null {
+  for (const [workspaceId, state] of Object.entries(states)) {
+    if (state.origins?.[chatId]) {
+      return workspaceId
+    }
+  }
+  return null
+}
+
+export function moveSidebarChatToWorkspace(
+  states: SidebarChatGroupsByWorktree,
+  fromWorkspaceId: string,
+  toWorkspaceId: string,
+  chatId: string,
+  groupId = GENERAL_CHAT_GROUP
+): SidebarChatGroupsByWorktree {
+  const destination = states[toWorkspaceId] ?? EMPTY_SIDEBAR_CHAT_GROUPS
+  if (!groupIds(destination).has(groupId)) {
+    return states
+  }
+  const owner = manualSidebarChatWorkspace(chatId, states)
+  const origin = (owner && states[owner]?.origins?.[chatId]) || fromWorkspaceId
+  const next = { ...states }
+  for (const [workspaceId, state] of Object.entries(states)) {
+    if (chatId in state.assignments || state.origins?.[chatId]) {
+      const assignments = { ...state.assignments }
+      const origins = { ...state.origins }
+      delete assignments[chatId]
+      delete origins[chatId]
+      next[workspaceId] = { ...state, assignments, origins }
+    }
+  }
+  const target = next[toWorkspaceId] ?? destination
+  next[toWorkspaceId] = {
+    ...editSidebarChatGroups(target, { kind: 'move', chatId, groupId }),
+    origins: { ...target.origins, [chatId]: origin },
+    workspaceCollapsed: false
+  }
+  return next
+}
 
 export type SidebarChatGroupEdit =
   | { kind: 'add'; id: string; name: string }

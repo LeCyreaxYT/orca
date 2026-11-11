@@ -7,7 +7,11 @@ import {
   openVersionedCacheDatabase,
   removeVersionedCacheDatabase
 } from '../../sqlite/versioned-cache-database'
-import type { AiVaultSession } from '../../../shared/ai-vault/contracts/ai-vault-types'
+import type {
+  AiVaultListResult,
+  AiVaultSession
+} from '../../../shared/ai-vault/contracts/ai-vault-types'
+import { aiVaultSessionListMetadata } from '../../../shared/ai-vault/scanning/ai-vault-session-list-metadata'
 import type {
   PersistedSessionParseCacheEntry,
   SessionScopeCwdLookup,
@@ -18,11 +22,8 @@ import {
   readScopeCwdRows,
   writeScopeCwdRows
 } from './session-scope-cwds-table'
-import { parsePersistedSidecar } from './session-sidecar-stat'
-import {
-  mergeSkippedTranscriptRecords,
-  type SkippedTranscriptRecord
-} from '../transcripts/session-transcript-record-budget'
+import { parsePersistedSessionParseCacheRow } from './session-parse-cache-row'
+export { parsePersistedSessionParseCacheRow } from './session-parse-cache-row'
 
 // Bump for row-layout or cached-semantic changes; mismatched databases are discarded.
 export const SESSION_PARSE_CACHE_SCHEMA_VERSION = 9
@@ -56,6 +57,42 @@ export class SessionParseCacheDatabase {
 
   constructor(private readonly path: string) {
     this.db = openDatabase(path)
+  }
+
+  readMetadataSnapshot(): AiVaultListResult {
+    const empty = { sessions: [], issues: [], scannedAt: new Date(0).toISOString() }
+    return this.run((db) => {
+      const rows = db
+        .prepare(
+          `SELECT path, mtime_ms, size_bytes, platform, seen_at,
+           CASE WHEN json_extract(session, '$.messageCount') > 0
+             THEN json_set(session, '$.previewMessages', json('[]'))
+             ELSE session END AS session
+           FROM rows WHERE json_valid(session)`
+        )
+        .all()
+      const sessions: AiVaultSession[] = []
+      let seenAt = 0
+      for (const row of rows) {
+        const entry = parsePersistedSessionParseCacheRow([
+          row.path,
+          {
+            mtimeMs: row.mtime_ms,
+            sizeBytes: row.size_bytes,
+            platform: row.platform,
+            session: typeof row.session === 'string' ? JSON.parse(row.session) : null
+          }
+        ])
+        const session = entry?.[1].session
+        if (session && Array.isArray(session.previewMessages)) {
+          sessions.push(aiVaultSessionListMetadata(session))
+          if (typeof row.seen_at === 'number' && row.seen_at <= 8.64e15) {
+            seenAt = Math.max(seenAt, row.seen_at)
+          }
+        }
+      }
+      return { sessions, issues: [], scannedAt: new Date(seenAt).toISOString() }
+    }, empty)
   }
 
   read(path: string): PersistedSessionParseCacheEntry | undefined {
@@ -230,66 +267,4 @@ function openDatabase(path: string): SyncDatabase {
   })
   hardenSqliteDatabaseFiles(path)
   return db
-}
-
-export function parsePersistedSessionParseCacheRow(
-  item: unknown
-): [string, PersistedSessionParseCacheEntry] | null {
-  if (!Array.isArray(item) || item.length !== 2) {
-    return null
-  }
-  const [path, entry]: unknown[] = item
-  if (typeof path !== 'string' || !isRecord(entry)) {
-    return null
-  }
-  const { mtimeMs, sizeBytes, platform, session } = entry
-  if (
-    typeof mtimeMs !== 'number' ||
-    (sizeBytes !== null && typeof sizeBytes !== 'number') ||
-    typeof platform !== 'string' ||
-    (session !== null && !isRecord(session))
-  ) {
-    return null
-  }
-  const sidecar = parsePersistedSidecar(entry.sidecar)
-  const skippedRecords: SkippedTranscriptRecord[] = []
-  if (entry.skippedRecords !== undefined) {
-    if (!Array.isArray(entry.skippedRecords)) {
-      return null
-    }
-    for (const record of entry.skippedRecords) {
-      if (
-        !isRecord(record) ||
-        typeof record.byteOffset !== 'number' ||
-        !Number.isSafeInteger(record.byteOffset) ||
-        record.byteOffset < 0 ||
-        typeof record.approximateBytes !== 'number' ||
-        !Number.isSafeInteger(record.approximateBytes) ||
-        record.approximateBytes <= 0
-      ) {
-        return null
-      }
-      skippedRecords.push({
-        byteOffset: record.byteOffset,
-        approximateBytes: record.approximateBytes
-      })
-    }
-  }
-  return [
-    path,
-    {
-      mtimeMs,
-      sizeBytes,
-      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: only ever compared for equality with process.platform, so an unknown value is a miss, not a misuse.
-      platform: platform as NodeJS.Platform,
-      // oxlint-disable-next-line typescript/consistent-type-assertions -- SAFETY: written only from AiVaultSession values by this build or one with the same schema version; a semantics change bumps the version and drops the rows.
-      session: session as AiVaultSession | null,
-      skippedRecords: mergeSkippedTranscriptRecords([], skippedRecords),
-      ...(sidecar === undefined ? {} : { sidecar })
-    }
-  ]
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }

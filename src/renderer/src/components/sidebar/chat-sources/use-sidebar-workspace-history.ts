@@ -3,14 +3,15 @@ import { useAppStore } from '@/store'
 import { useSidebarChatHistory } from './sidebar-chat-history-store'
 import { mappedSidebarChatWorkspace } from '../../../../../shared/sidebar-chat-sources'
 import { getStructuredAgentSessionTabs } from '@/components/native-chat/session/status/structured-agent-session-tabs'
-import { useAllWorktrees } from '@/store/slices/worktrees/listing/use-worktree-catalog'
+import { useSidebarChatWorkspaces } from './use-sidebar-chat-workspaces'
+import { isAiVaultSessionResumableContent } from '../../../../../shared/ai-vault/contracts/ai-vault-types'
 
 export function useSidebarWorkspaceHistory(workspaceId: string) {
   const history = useSidebarChatHistory((state) => state.sessions)
   const structure = useSidebarChatHistory((state) => state.structure)
   const mappings = useAppStore((state) => state.sidebarChatGroupsByWorktree)
   const unifiedTabs = useAppStore((state) => state.unifiedTabsByWorktree)
-  const workspaces = useAllWorktrees()
+  const workspaces = useSidebarChatWorkspaces()
   return useMemo(() => {
     const openStructured = new Set(
       getStructuredAgentSessionTabs(unifiedTabs).map(
@@ -28,7 +29,7 @@ export function useSidebarWorkspaceHistory(workspaceId: string) {
     return history
       .filter(
         (session) =>
-          session.messageCount > 0 &&
+          isAiVaultSessionResumableContent(session) &&
           !(
             session.structuredSession &&
             openStructured.has(`${session.executionHostId}:${session.structuredSession.sessionId}`)

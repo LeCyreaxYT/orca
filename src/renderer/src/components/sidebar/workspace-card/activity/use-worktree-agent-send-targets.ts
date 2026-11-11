@@ -11,7 +11,12 @@ import { useUiLanguageRevision } from '@/i18n/use-ui-language-revision'
 import { useTranslate } from '@/i18n/use-translate'
 import { recomputeOn } from '@/lib/recompute-on'
 
-export function useWorktreeAgentSendTargets(worktreeId: string) {
+const NO_SOURCE_WORKSPACES: readonly string[] = []
+
+export function useWorktreeAgentSendTargets(
+  worktreeId: string,
+  sourceWorkspaceIds: readonly string[] = NO_SOURCE_WORKSPACES
+) {
   const t = useTranslate()
   const languageRevision = useUiLanguageRevision()
   const { targetMode: agentSendPopoverTargetMode, agentStatusEpoch } = useAppStore(
@@ -31,24 +36,26 @@ export function useWorktreeAgentSendTargets(worktreeId: string) {
         }
 
         return new Map(
-          deriveRunningAgentSendTargets(sendTargetInputs, worktreeId).map((target) => [
-            target.paneKey,
-            agentSendPopoverTargetMode?.status === 'sending' &&
-            agentSendPopoverTargetMode.sendingPaneKey === target.paneKey
-              ? {
-                  status: 'sending' as const,
-                  disabledReason: t(
-                    'auto.components.sidebar.WorktreeCardAgents.sendingTarget',
-                    'Sending...'
-                  )
-                }
-              : target.disabledReason
+          [...new Set([worktreeId, ...sourceWorkspaceIds])]
+            .flatMap((ownerId) => deriveRunningAgentSendTargets(sendTargetInputs, ownerId))
+            .map((target) => [
+              target.paneKey,
+              agentSendPopoverTargetMode?.status === 'sending' &&
+              agentSendPopoverTargetMode.sendingPaneKey === target.paneKey
                 ? {
-                    status: target.status,
-                    disabledReason: agentSendDisabledReasonLabel(target.disabledReason)
+                    status: 'sending' as const,
+                    disabledReason: t(
+                      'auto.components.sidebar.WorktreeCardAgents.sendingTarget',
+                      'Sending...'
+                    )
                   }
-                : { status: target.status }
-          ])
+                : target.disabledReason
+                  ? {
+                      status: target.status,
+                      disabledReason: agentSendDisabledReasonLabel(target.disabledReason)
+                    }
+                  : { status: target.status }
+            ])
         )
       }),
     [
@@ -59,6 +66,7 @@ export function useWorktreeAgentSendTargets(worktreeId: string) {
       isAgentSendTargetModeActive,
       sendTargetInputs,
       worktreeId,
+      sourceWorkspaceIds,
       t
     ]
   )

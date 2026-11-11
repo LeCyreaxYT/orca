@@ -1,10 +1,10 @@
-import { useAllWorktrees } from '@/store/slices/worktrees/listing/use-worktree-catalog'
+import { useSidebarChatWorkspaces } from './use-sidebar-chat-workspaces'
 import { useTranslate } from '@/i18n/use-translate'
 import WorktreeCardAgents from '../workspace-card/activity/WorktreeCardAgents'
 
 export function SidebarPinnedChats() {
   const t = useTranslate()
-  const workspaces = useAllWorktrees()
+  const workspaces = useSidebarChatWorkspaces()
   return (
     <section
       data-sidebar-global-pins=""

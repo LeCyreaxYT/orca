@@ -228,6 +228,10 @@ export type AiVaultScanIssue = {
 } & Omit<AiVaultScanIssueText, 'message'>
 
 export type AiVaultListArgs = {
+  /** Read the persisted scanner snapshot without discovering or parsing transcripts. */
+  cachedOnly?: boolean
+  /** Omit message previews while retaining real resumable-content evidence. */
+  metadataOnly?: boolean
   /** Opts a selected runtime-host refresh into content-conditional replies. */
   afterFingerprint?: string | null
   /** Opt-in promises this client starts IDE history in a new CLI conversation. */

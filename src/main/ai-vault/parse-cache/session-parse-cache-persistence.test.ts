@@ -198,6 +198,33 @@ describe('session parse cache persistence', () => {
     expect(stats.fullParses).toBe(1)
     await flushSessionParseCachePersist()
 
+    const metadataDatabase = new SessionParseCacheDatabase(
+      join(root, 'vault-state', 'session-parse-cache.sqlite')
+    )
+    try {
+      const snapshot = metadataDatabase.readMetadataSnapshot()
+      expect(
+        snapshot.sessions.map((session) => ({
+          title: session.title,
+          messageCount: session.messageCount,
+          previewMessages: session.previewMessages,
+          executionHostId: session.executionHostId,
+          subagent: session.subagent
+        }))
+      ).toEqual([
+        {
+          title: 'first question',
+          messageCount: 2,
+          previewMessages: [],
+          executionHostId: 'local',
+          subagent: null
+        }
+      ])
+      expect(metadataDatabase.read(transcript)?.session?.previewMessages.length).toBeGreaterThan(0)
+    } finally {
+      metadataDatabase.close()
+    }
+
     simulateRestart(cacheFile)
     // Removing the transcript proves the restored hit needs no transcript read.
     await rm(transcript)

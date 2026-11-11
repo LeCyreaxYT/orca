@@ -1,8 +1,4 @@
 import type { UISlice, UISliceGet, UISliceSet } from './ui-slice-contract'
-import {
-  editSidebarChatGroups,
-  EMPTY_SIDEBAR_CHAT_GROUPS
-} from '../../../../../shared/sidebar-chat-groups'
 import { workspaceHostScopeForVisibleHosts } from '../../../../../shared/workspace-view/workspace-host-visibility'
 import { createAgentsViewPreferenceActions } from './ui-slice-agents-view-preference-actions'
 import {
@@ -39,6 +35,7 @@ import {
   WORKSPACE_BOARD_COLUMN_WIDTH_DEFAULT
 } from '../../../../../shared/workspace-statuses'
 import { createHostWorkspaceStatusActions } from './ui-slice-host-workspace-statuses'
+import { createSidebarChatPreferenceActions } from './ui-slice-sidebar-chat-actions'
 
 /** Builds preference defaults and setters for the UI slice, leaving durable writes to the persistence layer. */
 export function createUiPreferenceActions(set: UISliceSet, get: UISliceGet): Partial<UISlice> {
@@ -210,17 +207,7 @@ export function createUiPreferenceActions(set: UISliceSet, get: UISliceGet): Par
       window.api.ui.set({ showAgentModels: show }).catch(console.error)
     },
     agentActivityDisplayMode: DEFAULT_AGENT_ACTIVITY_DISPLAY_MODE,
-    sidebarChatGroupsByWorktree: {},
-    editSidebarChatGroup: (worktreeId, edit) =>
-      set((state) => ({
-        sidebarChatGroupsByWorktree: {
-          ...state.sidebarChatGroupsByWorktree,
-          [worktreeId]: editSidebarChatGroups(
-            state.sidebarChatGroupsByWorktree[worktreeId] ?? EMPTY_SIDEBAR_CHAT_GROUPS,
-            edit
-          )
-        }
-      })),
+    ...createSidebarChatPreferenceActions(set, get),
     setAgentActivityDisplayMode: (mode) => {
       const normalized = normalizeAgentActivityDisplayMode(mode)
       window.api.ui.set({ agentActivityDisplayMode: normalized }).catch(console.error)

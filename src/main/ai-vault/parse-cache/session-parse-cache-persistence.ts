@@ -65,6 +65,16 @@ export function getSessionParseCachePersistenceOptions(): SessionParseCachePersi
   return options ? { ...options } : null
 }
 
+export function readSessionParseCacheMetadata() {
+  return (
+    openedDatabase()?.readMetadataSnapshot() ?? {
+      sessions: [],
+      issues: [],
+      scannedAt: new Date(0).toISOString()
+    }
+  )
+}
+
 export function resetSessionParseCachePersistenceForTests(): void {
   clearWriteTimer()
   pendingWrites.clear()
