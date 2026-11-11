@@ -5,12 +5,18 @@ import { Label } from '@/components/ui/label'
 import { useTranslate } from '@/i18n/use-translate'
 import type { WorkPlanCommand } from '../../../../shared/work-plans/work-plan'
 
+function focusObjective(field: HTMLTextAreaElement | null): void {
+  field?.focus()
+}
+
 export function WorkPlanEditor({
   disabled,
-  onCreate
+  onCreate,
+  focusGoal = false
 }: {
   disabled: boolean
   onCreate: (command: WorkPlanCommand) => void
+  focusGoal?: boolean
 }) {
   const t = useTranslate()
   const id = useId()
@@ -42,6 +48,7 @@ export function WorkPlanEditor({
       <div className="space-y-2">
         <Label htmlFor={`${id}-goal`}>{t('components.workPlan.objective', 'Goal')}</Label>
         <Textarea
+          ref={focusGoal ? focusObjective : undefined}
           id={`${id}-goal`}
           required
           maxLength={8000}

@@ -131,6 +131,7 @@ function WorkPlanControl({
               </>
             ) : state.ready ? (
               <WorkPlanEditor
+                focusGoal={newPlan}
                 disabled={state.pending}
                 onCreate={async (command) => {
                   if (await state.update(command)) {
