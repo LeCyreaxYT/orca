@@ -248,6 +248,23 @@
       "retry": "Erneut versuchen",
       "openFailed": "Dieser Chat konnte nicht geöffnet werden. Versuche es erneut."
     },
+    "footer": {
+      "usage": "Nutzung",
+      "session": "5 Std.",
+      "week": "Woche",
+      "reset": "Reset in {{duration}}",
+      "noWindow": "Keine Nutzungsdaten für dieses Zeitfenster",
+      "connect": "Konto verbinden",
+      "accounts": "Konten verwalten",
+      "profile": "Persönlich",
+      "profileMenu": "{{name}} · Profil und Konten",
+      "showUsage": "Nutzung anzeigen",
+      "settings": "Einstellungen",
+      "appName": "Orca Sky"
+    },
+    "navigation": {
+      "more": "Mehr"
+    },
     "chatGroups": {
       "newChat": "Neuer Chat",
       "more": "Mehr anzeigen",
@@ -6332,7 +6349,6 @@
           "c4f8e1b72a": "X"
         },
         "SidebarToolbar": {
-          "87d0064026": "Arbeitsbereichsübersicht in die untere Leiste verschoben",
           "a30e34eb5c": "Arbeitsbereichsübersicht schließen",
           "49f62c5665": "Arbeitsbereichsübersicht"
         },
@@ -20929,9 +20945,7 @@
       "loading": "Plan wird geladen…",
       "new": "Neuen Plan beginnen"
     },
-    "sidebar": {
-      "advanced": "Erweitert"
-    }
+    "sidebar": {}
   },
   "dashboardPopout": {
     "recoverableError": {

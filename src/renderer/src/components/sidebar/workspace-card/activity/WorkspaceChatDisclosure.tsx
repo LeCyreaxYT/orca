@@ -23,7 +23,7 @@ export function WorkspaceChatDisclosure({
           ? t('sidebar.chatGroups.expandWorkspace', 'Show chats in {{name}}', { name })
           : t('sidebar.chatGroups.collapseWorkspace', 'Hide chats in {{name}}', { name })
       }
-      className="flex h-8 w-9 shrink-0 items-center justify-center gap-1.5 rounded-md text-muted-foreground hover:bg-worktree-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="flex h-8 w-5 shrink-0 items-center justify-center text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       onKeyDown={(event) => event.stopPropagation()}
       onPointerDown={(event) => event.stopPropagation()}
       onClick={(event) => {
@@ -31,13 +31,23 @@ export function WorkspaceChatDisclosure({
         edit(worktreeId, { kind: 'toggle-workspace' })
       }}
     >
-      {collapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
       {collapsed ? (
         <Folder className="size-3.5" aria-hidden />
       ) : (
         <FolderOpen className="size-3.5" aria-hidden />
       )}
     </button>
+  )
+}
+
+export function WorkspaceChatChevron({ worktreeId }: { worktreeId: string }) {
+  const collapsed = useAppStore(
+    (state) => state.sidebarChatGroupsByWorktree[worktreeId]?.workspaceCollapsed === true
+  )
+  return collapsed ? (
+    <ChevronRight className="size-3 shrink-0 text-muted-foreground" aria-hidden />
+  ) : (
+    <ChevronDown className="size-3 shrink-0 text-muted-foreground" aria-hidden />
   )
 }
 

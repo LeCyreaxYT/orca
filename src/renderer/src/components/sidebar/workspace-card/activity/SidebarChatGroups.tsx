@@ -44,7 +44,7 @@ export function SidebarChatGroups({
 }: {
   worktreeId: string
   agents: readonly DashboardAgentRow[]
-  renderAgent: (agent: DashboardAgentRow) => ReactNode
+  renderAgent: (agent: DashboardAgentRow, actions?: ReactNode) => ReactNode
   pinnedOnly?: boolean
   focused?: ReadonlySet<string>
   childSignals?: ReadonlyMap<string, AgentDotState>
@@ -182,15 +182,17 @@ export function SidebarChatGroups({
                       const agent = item.agent
                       return (
                         <SidebarChatDraggable key={agent.paneKey} agent={agent}>
-                          <div className="min-w-0 flex-1">{renderAgent(agent)}</div>
-                          <div className="pointer-events-none shrink-0 pt-0.5 opacity-0 group-hover/chat-row:pointer-events-auto group-hover/chat-row:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100 has-[[data-state=open]]:pointer-events-auto has-[[data-state=open]]:opacity-100">
-                            <SidebarChatRowMenu
-                              worktreeId={worktreeId}
-                              chatId={sidebarChatIdentity(agent)}
-                              groupId={group.id}
-                              options={options}
-                            />
-                          </div>
+                          {renderAgent(
+                            agent,
+                            <div className="shrink-0 opacity-0 group-hover/compact-agent-row:opacity-100 group-focus-within/compact-agent-row:opacity-100 has-[[data-state=open]]:opacity-100 [@media(hover:none)]:opacity-100">
+                              <SidebarChatRowMenu
+                                worktreeId={worktreeId}
+                                chatId={sidebarChatIdentity(agent)}
+                                groupId={group.id}
+                                options={options}
+                              />
+                            </div>
+                          )}
                         </SidebarChatDraggable>
                       )
                     }
@@ -200,16 +202,18 @@ export function SidebarChatGroups({
                         id={sidebarHistoryChatId(item.session)}
                         title={item.session.title}
                       >
-                        <div className="min-w-0 flex-1">
-                          <SidebarHistoryChatRow session={item.session} worktreeId={worktreeId} />
-                        </div>
-                        <div className="pointer-events-none shrink-0 pt-0.5 opacity-0 group-hover/chat-row:pointer-events-auto group-hover/chat-row:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100 has-[[data-state=open]]:pointer-events-auto has-[[data-state=open]]:opacity-100">
-                          <SidebarChatRowMenu
-                            worktreeId={worktreeId}
-                            chatId={sidebarHistoryChatId(item.session)}
-                            groupId={group.id}
-                            options={options}
-                          />
+                        <div className="group/sidebar-history-row flex min-w-0 items-center rounded-md pr-2 hover:bg-worktree-sidebar-accent">
+                          <div className="min-w-0 flex-1">
+                            <SidebarHistoryChatRow session={item.session} worktreeId={worktreeId} />
+                          </div>
+                          <div className="shrink-0 opacity-0 group-hover/sidebar-history-row:opacity-100 group-focus-within/sidebar-history-row:opacity-100 has-[[data-state=open]]:opacity-100 [@media(hover:none)]:opacity-100">
+                            <SidebarChatRowMenu
+                              worktreeId={worktreeId}
+                              chatId={sidebarHistoryChatId(item.session)}
+                              groupId={group.id}
+                              options={options}
+                            />
+                          </div>
                         </div>
                       </SidebarChatDraggableRow>
                     )

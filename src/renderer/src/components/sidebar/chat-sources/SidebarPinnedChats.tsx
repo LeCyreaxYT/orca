@@ -13,11 +13,11 @@ export function SidebarPinnedChats() {
     >
       <h2
         data-sidebar-section-title="pinned"
-        className="flex h-8 min-w-0 items-center truncate px-2 text-xs font-semibold text-muted-foreground"
+        className="flex h-8 min-w-0 items-center truncate px-2 text-sm font-medium text-muted-foreground"
       >
         {t('sidebar.chatGroups.pinned', 'Pinned')}
       </h2>
-      <div className="scrollbar-sleek max-h-64 overflow-y-auto pl-2">
+      <div className="scrollbar-sleek max-h-[min(16rem,20vh)] overflow-y-auto pl-2">
         {workspaces
           .filter((workspace) => !workspace.isArchived)
           .map((workspace) => (

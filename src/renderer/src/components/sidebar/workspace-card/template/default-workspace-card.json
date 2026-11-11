@@ -31,7 +31,7 @@
     "title": "trim(ws.title)",
     "hoverBranch": "vars.newStyle ? ws.identity : vars.compact && vars.branch ? ws.branch : null",
     "hoverTitle": "len(vars.title) > 0 && vars.title != vars.hoverBranch ? vars.title : null",
-    "hoverDetails": "!vars.classic && (links.count > 0 || links.issue || links.linearIssue || links.jiraIssue || review != null || vars.hasComment || (options.show.automation && provenance.automation) || (options.show.cli && provenance.cli) || ports.count > 0 || vars.hoverTitle != null || vars.hoverBranch != null)",
+    "hoverDetails": "!vars.chatNavigation && !vars.classic && (links.count > 0 || links.issue || links.linearIssue || links.jiraIssue || review != null || vars.hasComment || (options.show.automation && provenance.automation) || (options.show.cli && provenance.cli) || ports.count > 0 || vars.hoverTitle != null || vars.hoverBranch != null)",
     "singleLine": "!(vars.hasMetaRow || git.remoteBranchConflict != null || vars.inlineAgents || lineage.toggleable)"
   },
   "frame": {
@@ -67,7 +67,10 @@
                 { "el": "RepoChip", "when": "vars.inlineRepo" },
                 {
                   "el": "Title",
-                  "props": { "dimWhenRead": "=vars.newStyle", "tooltip": "=!vars.hoverDetails" }
+                  "props": {
+                    "dimWhenRead": "=vars.newStyle && !vars.chatNavigation",
+                    "tooltip": "=!vars.chatNavigation && !vars.hoverDetails"
+                  }
                 },
                 { "el": "RenameError", "when": "ws.hasRenameError && !ws.isRenaming" },
                 {

@@ -15,6 +15,10 @@ import { SidebarPinnedChats } from '../../chat-sources/SidebarPinnedChats'
 import type { AiVaultSession } from '../../../../../../shared/ai-vault/contracts/ai-vault-types'
 import type { AppState } from '@/store/types'
 import { clearWorktreeAgentExpansionStateForTests } from './worktree-card-agents-expansion-state'
+import SidebarNav from '../../SidebarNav'
+import SidebarHeader from '../../SidebarHeader'
+import SidebarToolbar from '../../SidebarToolbar'
+import { createEmptyRateLimitState } from '../../../../../../shared/rate-limit-state-factory'
 
 const workspaceId = 'chat-groups-fixture'
 const titles = [
@@ -203,6 +207,84 @@ export const navigationMax = defineFixture({
   store: fixtureState,
   setup: resetSidebarFixture,
   render: () => <Navigation />
+})
+
+const approvedWorkspaces = [
+  makeWorktree('approved-changelogs', 'Changelogs'),
+  workspace,
+  makeWorktree('approved-phone', 'Scripts_Phone'),
+  makeWorktree('approved-dienst', 'Dienstblatt / SALi')
+]
+const usageNow = Date.now()
+const usage = (provider: 'codex' | 'claude', session: number, weekly: number) => ({
+  provider,
+  session: {
+    usedPercent: session,
+    windowMinutes: 300,
+    resetsAt: usageNow + 7200000,
+    resetDescription: null
+  },
+  weekly: {
+    usedPercent: weekly,
+    windowMinutes: 10080,
+    resetsAt: usageNow + 172800000,
+    resetDescription: null
+  },
+  status: 'ok' as const,
+  updatedAt: usageNow,
+  error: null
+})
+export const approvedNavigation = defineFixture({
+  width: 340,
+  store: {
+    ...fixtureState,
+    worktreesByRepo: { [repo.id]: approvedWorkspaces },
+    activeWorktreeId: workspaceId,
+    setupGuideSidebarDismissed: true,
+    persistedUIReady: true,
+    sidebarChatGroupsByWorktree: {
+      [workspaceId]: { groups: [], assignments: { [paneKeys[0]]: 'pinned' }, collapsed: [] }
+    },
+    rateLimits: createEmptyRateLimitState({
+      codex: usage('codex', 23, 89),
+      claude: usage('claude', 9, 20)
+    }),
+    activeOrcaProfileId: 'approved-profile',
+    orcaProfiles: [
+      {
+        id: 'approved-profile',
+        name: 'Alec',
+        kind: 'local',
+        avatar: { kind: 'initials', initials: 'AS', color: 'neutral' },
+        createdAt: 1,
+        updatedAt: 1,
+        lastOpenedAt: 1
+      }
+    ]
+  },
+  setup: async () => {
+    resetSidebarFixture()
+    await import('../../SidebarUsage')
+  },
+  render: () => (
+    <div className="@container/sidebar flex h-[900px] flex-col bg-worktree-sidebar text-worktree-sidebar-foreground">
+      <SidebarNav />
+      <SidebarPinnedChats />
+      <SidebarHeader onWorkspaceBoardMenuOpenChange={() => {}} />
+      <div className="min-h-0 flex-1 overflow-y-auto px-1 worktree-sidebar-scrollbar">
+        {approvedWorkspaces.map((worktree) => (
+          <WorktreeCard
+            key={worktree.id}
+            worktree={worktree}
+            repo={repo}
+            isActive={worktree.id === workspaceId}
+            nativeDragEnabled={false}
+          />
+        ))}
+      </div>
+      <SidebarToolbar workspaceBoardOpen={false} onWorkspaceBoardToggle={() => {}} />
+    </div>
+  )
 })
 
 export const pinAndUnpin = defineFixture({

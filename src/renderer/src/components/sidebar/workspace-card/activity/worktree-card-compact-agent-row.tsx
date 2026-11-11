@@ -14,6 +14,7 @@ import { getAgentRowPrimaryText } from '../../../../../../shared/agent-status/pr
 import { formatAgentToolPreview } from '@/lib/agent-status/presentation/agent-row-tool-preview'
 import { agentNoUpdateLabel } from '../../../../../../shared/agent-status/presentation/agent-row-decay-state'
 import { useSidebarChatName } from '../../chat-sources/use-sidebar-chat-name'
+import { TruncatedSidebarLabel } from '../../truncated-sidebar-label'
 import { lastEnteredDoneAt } from '@/components/dashboard/agent-finished-timestamp'
 import CacheTimer, { usePromptCacheCountdownForPane } from './CacheTimer'
 import { formatShortTimeAgo } from '@/lib/short-time-ago'
@@ -110,6 +111,7 @@ type CompactAgentRowProps = {
   hideIdentityIcon?: boolean
   cacheTimerActive?: boolean
   isUnvisited?: boolean
+  trailingActions?: React.ReactNode
 }
 
 export const CompactAgentRow = React.memo(function CompactAgentRow({
@@ -129,7 +131,8 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
   isFocusedPane = false,
   hideIdentityIcon = false,
   cacheTimerActive = true,
-  isUnvisited = false
+  isUnvisited = false,
+  trailingActions
 }: CompactAgentRowProps) {
   const t = useTranslate()
   const view = useClaudeAgentRowView(agent)
@@ -260,18 +263,28 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
               <AgentTypeIcon agentType={agent.agentType} size={14} />
             </span>
           )}
-          <span
-            className="min-w-0 flex-1 truncate"
-            title={sendTargetDisabledReason ? undefined : rowTitle}
-          >
-            <span className={leadClassName}>{leadingText}</span>
-            {trailingText && (
-              <span className={highlighted ? 'text-foreground/70' : 'text-muted-foreground/65'}>
-                {' '}
-                - {trailingText}
-              </span>
-            )}
-          </span>
+          {titleOnly ? (
+            <TruncatedSidebarLabel
+              text={leadingText}
+              overflow="fade"
+              tooltipText={`${leadingText} · ${formatAgentTypeLabel(agent.agentType)}`}
+              tooltipEnabled={!sendTargetDisabledReason}
+              className={cn('flex-1', leadClassName)}
+            />
+          ) : (
+            <span
+              className="min-w-0 flex-1 truncate"
+              title={sendTargetDisabledReason ? undefined : rowTitle}
+            >
+              <span className={leadClassName}>{leadingText}</span>
+              {trailingText && (
+                <span className={highlighted ? 'text-foreground/70' : 'text-muted-foreground/65'}>
+                  {' '}
+                  - {trailingText}
+                </span>
+              )}
+            </span>
+          )}
         </>
       )}
       {!titleOnly && showModel && model && (
@@ -285,7 +298,7 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
           {model}
         </span>
       )}
-      {hasChildDisclosure && !childAgentsExpanded && (
+      {hasChildDisclosure && !childAgentsExpanded && !titleOnly && (
         <span
           title={t(
             'auto.components.dashboard.DashboardAgentChildDisclosure.showChildAgents',
@@ -332,7 +345,7 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
         hasChildDisclosure && !titleOnly && 'worktree-agent-lineage-parent-row',
         isLineageChild && !titleOnly && 'worktree-agent-lineage-child-row',
         'flex h-6 items-center gap-1',
-        titleOnly && 'h-8 rounded-md px-1.5 text-[13px]',
+        titleOnly && 'h-8 gap-2 rounded-md px-2 text-[13px]',
         highlighted && 'bg-worktree-sidebar-accent',
         sendTargetStatus === 'sending' && 'cursor-progress opacity-75',
         sendTargetStatus === 'disabled' && 'cursor-default opacity-60'
@@ -344,6 +357,9 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
       onDragStart={(event) => event.stopPropagation()}
       tabIndex={titleOnly ? 0 : undefined}
       onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) {
+          return
+        }
         if (titleOnly && (event.key === 'Enter' || event.key === ' ')) {
           event.preventDefault()
           event.stopPropagation()
@@ -364,8 +380,10 @@ export const CompactAgentRow = React.memo(function CompactAgentRow({
       aria-level={agent.lineage ? agent.lineage.depth + 1 : undefined}
       aria-expanded={hasChildDisclosure ? childAgentsExpanded : undefined}
       title={sendTargetDisabledReason}
+      aria-label={titleOnly ? primary : undefined}
     >
       {rowBody}
+      {trailingActions}
     </div>
   )
 })

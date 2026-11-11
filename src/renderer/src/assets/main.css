@@ -1635,7 +1635,22 @@ html.native-shell .app-layout {
 }
 
 [data-sidebar-workspace-header]:hover {
+  background: transparent;
+}
+
+.sidebar-chat-title-fade {
+  mask-image: linear-gradient(to right, black calc(100% - 1.5rem), transparent);
+}
+
+.compact-agent-row[data-sidebar-chat-row]:hover,
+.compact-agent-row[data-sidebar-chat-row][data-focused-agent-pane='true'],
+.dark .compact-agent-row[data-sidebar-chat-row]:hover,
+.dark .compact-agent-row[data-sidebar-chat-row][data-focused-agent-pane='true'] {
   background: var(--worktree-sidebar-accent);
+}
+
+.compact-agent-row[data-sidebar-chat-row] button:hover {
+  background: transparent;
 }
 
 [data-chat-navigation][data-worktree-card-selected] [data-sidebar-workspace-header] {

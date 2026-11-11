@@ -1,6 +1,7 @@
 import React from 'react'
+import { useAppStore } from '@/store'
 import { WorkspaceNewChatButton } from '../activity/WorkspaceNewChatButton'
-import { WorkspaceChatDisclosure } from '../activity/WorkspaceChatDisclosure'
+import { WorkspaceChatChevron, WorkspaceChatDisclosure } from '../activity/WorkspaceChatDisclosure'
 import { SidebarChatAddGroup } from '../activity/SidebarChatGroupControls'
 import { DetachedHeadBadge } from '@/components/DetachedHeadBadge'
 import { useWslHostDistro, WslHostMark } from '@/components/wsl-host-mark/WslHostMark'
@@ -27,6 +28,7 @@ import { WorktreeCardSshHostControl } from '../host/WorktreeCardSshHostControl'
 import { WorktreeHostContextBadge } from '../host/WorktreeHostContextBadge'
 import { WorktreeTitleInlineRename } from '../identity/WorktreeTitleInlineRename'
 import { cardElement } from './card-template-compiler'
+import { useSidebarWorkspaceTitle } from '../../chat-sources/use-sidebar-workspace-title'
 
 type Card = WorktreeCardController
 const part = cardElement<Card>
@@ -34,27 +36,52 @@ const part = cardElement<Card>
 // Why: a parent hover card already shows the full title, so the title skips its own tooltip.
 const withoutTitleTooltip = (title: React.ReactElement): React.ReactElement => title
 
-function title(props: Readonly<Record<string, unknown>>, card: Card): React.ReactNode {
+function WorktreeCardTitle({
+  options: props,
+  card
+}: {
+  options: Readonly<Record<string, unknown>>
+  card: Card
+}): React.ReactNode {
   const { affiliateListMode, worktree } = card
+  const chatNavigation =
+    card.agentActivityDisplayMode === 'full' && card.cardProps.includes('inline-agents')
+  const mappedTitle = useSidebarWorkspaceTitle(worktree, card.visibleCardTitle)
+  const editChatGroup = useAppStore((state) => state.editSidebarChatGroup)
+  const expanded = useAppStore(
+    (state) => state.sidebarChatGroupsByWorktree[worktree.id]?.workspaceCollapsed !== true
+  )
   return (
-    <WorktreeTitleInlineRename
-      displayName={card.visibleCardTitle}
-      disabled={card.isDeleting || affiliateListMode}
-      showUnreadEmphasis={card.showUnreadEmphasis}
-      dimReadTitle={props.dimWhenRead === true}
-      className="text-[13px] leading-5"
-      editingClassName="flex-1"
-      titleWrapper={props.tooltip === false ? withoutTitleTooltip : undefined}
-      onEditingChange={affiliateListMode ? undefined : card.setTitleRenaming}
-      onRename={card.handleRenameTitle}
-      beginEditing={
-        !affiliateListMode &&
-        shouldBeginWorktreeRename(card.renamingWorktreeId, worktree.id, card.renameRowKey)
-      }
-      onBeginEditingConsumed={
-        affiliateListMode ? undefined : () => card.setRenamingWorktreeId(null)
-      }
-    />
+    <>
+      <WorktreeTitleInlineRename
+        displayName={chatNavigation ? mappedTitle : card.visibleCardTitle}
+        disabled={card.isDeleting || affiliateListMode}
+        renameOnDoubleClick={!chatNavigation}
+        onActivate={
+          chatNavigation
+            ? () => editChatGroup(worktree.id, { kind: 'toggle-workspace' })
+            : undefined
+        }
+        expanded={expanded}
+        showUnreadEmphasis={!chatNavigation && card.showUnreadEmphasis}
+        dimReadTitle={props.dimWhenRead === true}
+        className={chatNavigation ? 'text-[13px] font-normal leading-5' : 'text-[13px] leading-5'}
+        editingClassName="flex-1"
+        titleWrapper={props.tooltip === false ? withoutTitleTooltip : undefined}
+        onEditingChange={affiliateListMode ? undefined : card.setTitleRenaming}
+        onRename={card.handleRenameTitle}
+        beginEditing={
+          !affiliateListMode &&
+          shouldBeginWorktreeRename(card.renamingWorktreeId, worktree.id, card.renameRowKey)
+        }
+        onBeginEditingConsumed={
+          affiliateListMode ? undefined : () => card.setRenamingWorktreeId(null)
+        }
+      />
+      {chatNavigation && !card.titleRenaming ? (
+        <WorkspaceChatChevron worktreeId={worktree.id} />
+      ) : null}
+    </>
   )
 }
 
@@ -109,7 +136,9 @@ export const CARD_IDENTITY_PARTS = {
       />
     </div>
   )),
-  Title: part(['dimWhenRead', 'tooltip'], (props, _children, card) => title(props, card)),
+  Title: part(['dimWhenRead', 'tooltip'], (props, _children, card) => (
+    <WorktreeCardTitle options={props} card={card} />
+  )),
   RepoChip: part([], (_props, _children, { repo }) =>
     repo ? <WorktreeCardRepoChip repo={repo} /> : null
   ),

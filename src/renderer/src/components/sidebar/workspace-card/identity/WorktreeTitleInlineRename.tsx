@@ -40,6 +40,9 @@ type WorktreeTitleInlineRenameProps = {
   inputClassName?: string
   titleWrapper?: (title: React.ReactElement) => React.ReactElement
   wrapTitle?: boolean
+  renameOnDoubleClick?: boolean
+  onActivate?: () => void
+  expanded?: boolean
   onEditingChange?: (editing: boolean) => void
   onRename: (displayName: string) => Promise<void> | void
   // Parents request editing once and clear the trigger through onBeginEditingConsumed.
@@ -58,6 +61,9 @@ export function WorktreeTitleInlineRename({
   inputClassName,
   titleWrapper,
   wrapTitle = false,
+  renameOnDoubleClick = true,
+  onActivate,
+  expanded,
   onEditingChange,
   onRename,
   beginEditing = false,
@@ -340,7 +346,30 @@ export function WorktreeTitleInlineRename({
         className
       )}
       data-worktree-title-inline-rename=""
-      onDoubleClick={startRename}
+      onDoubleClick={renameOnDoubleClick ? startRename : undefined}
+      role={onActivate ? 'button' : undefined}
+      aria-expanded={onActivate ? expanded : undefined}
+      onClick={
+        onActivate
+          ? (event) => {
+              event.stopPropagation()
+              if (!disabled) {
+                onActivate()
+              }
+            }
+          : undefined
+      }
+      onKeyDown={
+        onActivate
+          ? (event) => {
+              if (!disabled && (event.key === 'Enter' || event.key === ' ')) {
+                event.preventDefault()
+                event.stopPropagation()
+                onActivate()
+              }
+            }
+          : undefined
+      }
       tabIndex={disabled ? undefined : 0}
     >
       {/* Why: visible text alone misses the unread state for assistive tech. */}

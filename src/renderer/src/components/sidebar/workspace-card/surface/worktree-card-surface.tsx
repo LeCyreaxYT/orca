@@ -2,6 +2,7 @@ import React from 'react'
 import { LoaderCircle } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
+import { useAppStore } from '@/store'
 import { AutoRenameFailedDialog } from '../identity/AutoRenameFailedDialog'
 import WorktreeContextMenu from '../../workspace-actions/context-menu/WorktreeContextMenu'
 import { useIsSleepingWorktree } from '../../workspace-actions/sleep/use-worktree-sleep-state'
@@ -50,6 +51,7 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
     !affiliateListMode && !isDeleting && !titleRenaming && !isRuntimeDisconnected
   )
   const isSleeping = useIsSleepingWorktree(worktree.id)
+  const editChatGroup = useAppStore((state) => state.editSidebarChatGroup)
   const chatNavigation =
     card.agentActivityDisplayMode === 'full' && card.cardProps.includes('inline-agents')
   const geometryFor = (statusLane: boolean) =>
@@ -70,11 +72,7 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
   )
   const { cardStyle } = geometryFor(frame.statusLane)
   const titleOnlyCard = frame.singleLine
-  const parentContent = chatNavigation ? (
-    <div className="@3xs/sidebar:pl-4">{parentCardContent}</div>
-  ) : (
-    parentCardContent
-  )
+  const parentContent = parentCardContent
 
   const cardBody = (
     <div
@@ -112,11 +110,21 @@ export function WorktreeCardSurface({ card }: { card: WorktreeCardController }):
       }
       data-worktree-lineage-drop-target={isLineageDropTarget || undefined}
       data-worktree-session-drop-target={sessionDrop.hovering || undefined}
-      onClick={handleClick}
-      onPointerDown={affiliateListMode ? undefined : handlePointerDown}
-      onPointerEnter={affiliateListMode ? undefined : handlePointerEnter}
-      onPointerLeave={affiliateListMode ? undefined : handlePointerLeave}
-      onDoubleClick={affiliateListMode ? undefined : handleDoubleClick}
+      onClick={
+        chatNavigation && !titleRenaming
+          ? (event) => {
+              if (!(event.target instanceof Node) || !event.currentTarget.contains(event.target)) {
+                return
+              }
+              event.stopPropagation()
+              editChatGroup(worktree.id, { kind: 'toggle-workspace' })
+            }
+          : handleClick
+      }
+      onPointerDown={affiliateListMode || chatNavigation ? undefined : handlePointerDown}
+      onPointerEnter={affiliateListMode || chatNavigation ? undefined : handlePointerEnter}
+      onPointerLeave={affiliateListMode || chatNavigation ? undefined : handlePointerLeave}
+      onDoubleClick={affiliateListMode || chatNavigation ? undefined : handleDoubleClick}
       draggable={!affiliateListMode && nativeDragEnabled && !isDeleting && !titleRenaming}
       onDragStart={!affiliateListMode && nativeDragEnabled ? handleDragStart : undefined}
       onDragEnd={!affiliateListMode && nativeDragEnabled ? handleDragEnd : undefined}

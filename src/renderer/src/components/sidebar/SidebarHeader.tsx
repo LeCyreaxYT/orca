@@ -52,14 +52,14 @@ const SidebarHeader = React.memo(function SidebarHeader({
   )
 
   return (
-    <div className="group/sidebar-header mt-2 flex h-8 min-w-0 shrink-0 items-center justify-between gap-1.5 px-2">
+    <div className="group/sidebar-header mt-2 flex h-8 min-w-0 shrink-0 items-center justify-between gap-1.5 px-2 @max-3xs/sidebar:h-auto @max-3xs/sidebar:flex-col @max-3xs/sidebar:items-stretch @max-3xs/sidebar:gap-0">
       <div
         className="flex min-w-0 items-center"
         data-contextual-tour-target={groupBy === 'repo' ? 'projects-collapse-all' : undefined}
       >
         <span
           // Truncate localized titles because fixed-width actions cannot shrink inside the short header row.
-          className="min-w-0 truncate select-none pl-2 pr-0.5 text-xs font-semibold text-muted-foreground"
+          className="min-w-0 truncate select-none pl-2 pr-0.5 text-sm font-medium text-muted-foreground"
           data-sidebar-section-title={groupBy === 'repo' ? 'projects' : 'workspaces'}
         >
           {sidebarTitle}
@@ -67,7 +67,7 @@ const SidebarHeader = React.memo(function SidebarHeader({
         {/* WorktreeList portals the collapse-all toggle here; it owns the rendered project rows. */}
         <div ref={projectsCollapseTarget} className="flex shrink-0 items-center empty:hidden" />
       </div>
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1 @max-3xs/sidebar:justify-end">
         <Popover
           open={introOpen}
           onOpenChange={(open) => {

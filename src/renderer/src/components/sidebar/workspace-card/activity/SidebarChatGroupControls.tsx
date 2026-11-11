@@ -142,7 +142,7 @@ export function SidebarChatRowMenu({
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
-          variant="ghost"
+          variant="row-action"
           size="icon-xs"
           aria-label={t('sidebar.chatGroups.move', 'Move chat')}
           onClick={(event) => event.stopPropagation()}

@@ -1,11 +1,14 @@
 import { useRef, useState } from 'react'
-import { Plus, SquarePen } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useAppStore } from '@/store'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -97,6 +100,21 @@ function ChatChoices({
   )
 }
 
+export function WorkspaceNewChatSubmenu({ worktreeId }: { worktreeId: string }) {
+  const t = useTranslate()
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger>
+        <Plus className="size-3.5" />
+        {t('sidebar.chatGroups.newChat', 'New chat')}
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent>
+        <ChatChoices worktreeId={worktreeId} onLaunch={() => {}} />
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
+  )
+}
+
 export function WorkspaceNewChatButton(props: Props) {
   const t = useTranslate()
   const [open, setOpen] = useState(false)
@@ -112,18 +130,18 @@ export function WorkspaceNewChatButton(props: Props) {
         }
       }}
     >
-      <Tooltip>
+      <Tooltip open={props.labelled ? false : undefined}>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
             {props.labelled ? (
               <button
                 type="button"
-                className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[13px] text-worktree-sidebar-foreground hover:bg-worktree-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex h-8 w-full items-center gap-2 rounded-md bg-worktree-sidebar-accent px-2 text-left text-[13px] text-worktree-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 disabled={props.disabled}
                 onPointerDown={(event) => event.stopPropagation()}
                 onClick={(event) => event.stopPropagation()}
               >
-                <SquarePen className="size-4" />
+                <Plus className="size-4" />
                 <span>{label}</span>
               </button>
             ) : (

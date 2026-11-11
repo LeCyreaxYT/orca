@@ -14,6 +14,8 @@ type TruncatedSidebarLabelProps = {
   tooltipEnabled?: boolean
   tooltipSide?: 'top' | 'right' | 'bottom' | 'left'
   tooltipSideOffset?: number
+  overflow?: 'ellipsis' | 'fade'
+  tooltipText?: string
 }
 
 export function TruncatedSidebarLabel({
@@ -21,7 +23,9 @@ export function TruncatedSidebarLabel({
   className,
   tooltipEnabled = true,
   tooltipSide = 'right',
-  tooltipSideOffset = 8
+  tooltipSideOffset = 8,
+  overflow = 'ellipsis',
+  tooltipText = text
 }: TruncatedSidebarLabelProps): React.JSX.Element {
   const nodeRef = React.useRef<HTMLSpanElement | null>(null)
   const resizeObserverRef = React.useRef<ResizeObserver | null>(null)
@@ -68,7 +72,15 @@ export function TruncatedSidebarLabel({
   }, [measureTruncated, text])
 
   const label = (
-    <span ref={handleRef} className={cn('block min-w-0 truncate', className)}>
+    <span
+      ref={handleRef}
+      className={cn(
+        'block min-w-0',
+        overflow === 'fade' ? 'overflow-hidden whitespace-nowrap text-clip' : 'truncate',
+        overflow === 'fade' && truncated && 'sidebar-chat-title-fade',
+        className
+      )}
+    >
       {text}
     </span>
   )
@@ -85,7 +97,7 @@ export function TruncatedSidebarLabel({
         sideOffset={tooltipSideOffset}
         className="max-w-80 whitespace-normal break-all text-left"
       >
-        {text}
+        {tooltipText}
       </TooltipContent>
     </Tooltip>
   )

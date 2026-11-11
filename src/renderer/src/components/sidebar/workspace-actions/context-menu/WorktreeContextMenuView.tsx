@@ -6,7 +6,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Bell, BellOff, Pencil, Pin, PinOff, Unlink } from 'lucide-react'
+import { Bell, BellOff, ChevronDown, ChevronUp, Pencil, Pin, PinOff, Unlink } from 'lucide-react'
+import { useAppStore } from '@/store'
+import { useWorktreeAgentDisplay } from '../../workspace-card/activity/use-worktree-agent-display'
+import { WorkspaceNewChatSubmenu } from '../../workspace-card/activity/WorkspaceNewChatButton'
+import { useSidebarWorkspaceTitle } from '../../chat-sources/use-sidebar-workspace-title'
 import { cn } from '@/lib/utils'
 import { WorktreeRowOpenInSubMenu } from '../open/WorktreeRowOpenInSubMenu'
 import { WorktreeDeveloperMenu } from '../open/WorktreeDeveloperMenu'
@@ -72,6 +76,12 @@ export default function WorktreeContextMenuView({ model }: { model: WorktreeCont
     workspaceStatuses
   } = model
   const t = useTranslate()
+  const { agentActivityDisplayMode } = useWorktreeAgentDisplay()
+  const chatsCollapsed = useAppStore(
+    (state) => state.sidebarChatGroupsByWorktree[worktree.id]?.workspaceCollapsed === true
+  )
+  const editChatGroup = useAppStore((state) => state.editSidebarChatGroup)
+  const title = useSidebarWorkspaceTitle(worktree, worktree.displayName ?? '')
   const sleepItems = (
     <WorkspaceSleepMenuItems
       isMultiContext={isMultiContext}
@@ -137,11 +147,33 @@ export default function WorktreeContextMenuView({ model }: { model: WorktreeCont
         >
           <DropdownMenuLabel>
             <span className="block max-w-60 truncate">
-              {isMultiContext || !worktree.displayName
+              {isMultiContext || !title
                 ? t('auto.components.sidebar.WorktreeContextMenu.workspaceSection', 'Workspace')
-                : worktree.displayName}
+                : title}
             </span>
           </DropdownMenuLabel>
+          {!isMultiContext && agentActivityDisplayMode === 'full' ? (
+            <>
+              <WorkspaceNewChatSubmenu worktreeId={worktree.id} />
+              <DropdownMenuItem
+                onSelect={() => editChatGroup(worktree.id, { kind: 'toggle-workspace' })}
+              >
+                {chatsCollapsed ? (
+                  <ChevronDown className="size-3.5" />
+                ) : (
+                  <ChevronUp className="size-3.5" />
+                )}
+                {chatsCollapsed
+                  ? t('sidebar.chatGroups.expandWorkspace', 'Show chats in {{name}}', {
+                      name: title
+                    })
+                  : t('sidebar.chatGroups.collapseWorkspace', 'Hide chats in {{name}}', {
+                      name: title
+                    })}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          ) : null}
           {!isMultiContext && <WorktreeWslHostStartMenuItem worktreeId={worktree.id} />}
           {isMultiContext ? (
             sleepItems

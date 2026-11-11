@@ -11,6 +11,8 @@ import { structuredAgentSessionTargetForHost } from '@/runtime/native-chat/sessi
 import { resolveAiVaultSessionResumeInChatForWorkspace } from '@/components/right-sidebar/ai-vault/session-actions/ai-vault-session-resume-in-chat-workspace'
 import { resumeAiVaultSessionInNewChat } from '@/components/right-sidebar/ai-vault/session-actions/ai-vault-session-resume-in-chat-launch'
 import { newAgentLaunchRequestId } from '@/lib/agent-session/launch/routing/agent-launch-request-id'
+import { TruncatedSidebarLabel } from '../truncated-sidebar-label'
+import { formatAgentTypeLabel } from '../../../../../shared/agent-status/presentation/agent-type-label'
 
 export function SidebarHistoryChatRow({
   session,
@@ -43,8 +45,8 @@ export function SidebarHistoryChatRow({
       tabIndex={0}
       aria-busy={opening}
       data-sidebar-chat-row={sidebarHistoryChatId(session)}
-      className="flex h-8 min-w-0 cursor-pointer items-center gap-2 rounded-md px-1.5 text-[13px] text-worktree-sidebar-foreground hover:bg-worktree-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      title={session.title}
+      className="flex h-8 min-w-0 cursor-pointer items-center gap-2 rounded-md px-2 text-[13px] text-worktree-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      aria-label={session.title}
       onClick={() => void open()}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -59,7 +61,12 @@ export function SidebarHistoryChatRow({
       ) : (
         <AgentTypeIcon agentType={session.agent} size={14} />
       )}
-      <span className="min-w-0 flex-1 truncate">{session.title}</span>
+      <TruncatedSidebarLabel
+        text={session.title}
+        overflow="fade"
+        tooltipText={`${session.title} · ${formatAgentTypeLabel(session.agent)}`}
+        className="flex-1"
+      />
     </div>
   )
 }

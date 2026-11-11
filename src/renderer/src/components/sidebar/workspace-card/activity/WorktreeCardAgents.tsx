@@ -5,7 +5,7 @@ import React, { useCallback, useMemo, useRef } from 'react'
 import { useAppStore } from '@/store'
 import DashboardAgentRow from '@/components/dashboard/DashboardAgentRow'
 import { useNow } from '@/hooks/use-now'
-import { useWorktreeAgentRows } from './useWorktreeAgentRows'
+import { useSidebarWorkspaceAgents } from './use-sidebar-workspace-agents'
 import { useWorktreeAgentDisplay } from './use-worktree-agent-display'
 import { cn } from '@/lib/utils'
 import type { DashboardAgentRow as DashboardAgentRowData } from '@/components/dashboard/useDashboardData'
@@ -53,18 +53,7 @@ const WorktreeCardAgents = React.memo(function WorktreeCardAgents({
   pinnedOnly = false
 }: Props) {
   useUiLanguageRevision()
-  const origins = useAppStore((state) => state.sidebarChatGroupsByWorktree[worktreeId]?.origins)
-  const additionalOwners = useMemo(
-    () => [...new Set(Object.values(origins ?? {}))].filter((id) => id !== worktreeId),
-    [origins, worktreeId]
-  )
-  const selectedAgents = useWorktreeAgentRows(
-    worktreeId,
-    precomputedAgents === undefined || additionalOwners.length > 0,
-    additionalOwners
-  )
-  const agents =
-    additionalOwners.length > 0 ? selectedAgents : (precomputedAgents ?? selectedAgents)
+  const agents = useSidebarWorkspaceAgents(worktreeId, precomputedAgents)
   if (agents.length === 0) {
     return (
       <SidebarChatGroups
@@ -287,7 +276,8 @@ const WorktreeCardAgentsBody = React.memo(function WorktreeCardAgentsBody({
   const renderCompactAgentBranch = (
     agent: DashboardAgentRowData,
     ancestorPaneKeys: ReadonlySet<string> = new Set(),
-    cacheTimerActive = true
+    cacheTimerActive = true,
+    trailingActions?: React.ReactNode
   ): React.ReactNode => {
     if (ancestorPaneKeys.has(agent.paneKey)) {
       return null
@@ -329,6 +319,7 @@ const WorktreeCardAgentsBody = React.memo(function WorktreeCardAgentsBody({
           onToggleChildAgents={canToggle ? () => toggleLineageParent(agent.paneKey) : undefined}
           isFocusedPane={isFocusedOrHidesFocus(agent.paneKey, expanded)}
           cacheTimerActive={cacheTimerActive}
+          trailingActions={trailingActions}
         />
         {hasChildAgents ? (
           <CompactAgentExpansion expanded={expanded}>
@@ -415,7 +406,9 @@ const WorktreeCardAgentsBody = React.memo(function WorktreeCardAgentsBody({
           worktreeId={worktreeId}
           pinnedOnly={pinnedOnly}
           agents={rootAgents}
-          renderAgent={renderCompactAgentBranch}
+          renderAgent={(agent, actions) =>
+            renderCompactAgentBranch(agent, new Set(), true, actions)
+          }
           focused={
             new Set([
               ...(focusedAgentPaneKey ? [focusedAgentPaneKey] : []),

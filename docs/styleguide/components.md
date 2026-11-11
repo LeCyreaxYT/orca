@@ -47,6 +47,8 @@ If you find yourself styling around a primitive (`<Popover>` to act like a `<Dia
 
 ## Tooltips
 
+For an icon action inside a row that already owns the full hover surface, use `Button variant="row-action"`. It keeps the row's foreground and background while retaining button focus and disabled states.
+
 Tooltips exist to _name_ a control whose meaning isn't obvious from its appearance. They are not the place to teach, persuade, or warn — anything users need to read while acting belongs in the visible UI.
 
 - **Use a tooltip when:** an icon-only button or compact chip needs a label. Toolbar icons, badges with abbreviations, truncated paths.

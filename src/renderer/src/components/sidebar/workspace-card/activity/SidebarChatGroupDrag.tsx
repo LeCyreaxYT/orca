@@ -106,10 +106,7 @@ export function SidebarChatDraggableRow({
   return (
     <div
       ref={setNodeRef}
-      className={cn(
-        'group/chat-row relative flex min-w-0 items-start gap-0.5',
-        isDragging && 'opacity-50'
-      )}
+      className={cn('group/chat-row relative min-w-0', isDragging && 'opacity-50')}
       onPointerDownCapture={(event) => {
         if (
           event.target instanceof Element &&

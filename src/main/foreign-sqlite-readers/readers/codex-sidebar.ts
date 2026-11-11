@@ -65,12 +65,13 @@ export function readCodexSidebarDatabase(db: SyncDatabase): CodexSidebarResult {
         projects.push({ id: row.id, name: row.name, paths: [row.path] })
       }
     }
-    const updatedAt = columns.has('updated_at_ms')
-      ? columns.has('updated_at')
-        ? ', COALESCE(updated_at_ms, updated_at * 1000) AS updatedAt'
-        : ', updated_at_ms AS updatedAt'
-      : columns.has('updated_at')
-        ? ', updated_at * 1000 AS updatedAt'
+    // Metadata migrations change updated_at without new conversation activity.
+    const activityColumns = ['recency_at_ms', 'recency_at', 'updated_at_ms', 'updated_at']
+      .filter((column) => columns.has(column))
+      .map((column) => (column.endsWith('_ms') ? column : `${column} * 1000`))
+    const updatedAt =
+      activityColumns.length > 0
+        ? `, ${activityColumns.length === 1 ? activityColumns[0] : `COALESCE(${activityColumns.join(', ')})`} AS updatedAt`
         : ''
     const threads = Threads.parse(
       db
