@@ -90,8 +90,10 @@ export function useWorkPlan(sessionId: string, target: RuntimeClientTarget, open
           }
         )
         setPlan(value)
+        return true
       } catch (cause) {
         setError(failureMessage(cause))
+        return false
       } finally {
         setPending(false)
       }

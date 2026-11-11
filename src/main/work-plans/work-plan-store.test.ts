@@ -139,4 +139,56 @@ describe('native chat plan lifecycle', () => {
     ).toThrow('disk full')
     expect(failure.read('chat-a')).toMatchObject({ phase: 'working', revision: 2 })
   })
+
+  it('starts a later user plan in the same chat while preserving accepted evidence and rejecting stale writers', () => {
+    const { store, edit, saved } = rig()
+    for (const criterionId of ['save', 'view']) {
+      edit({
+        kind: 'report',
+        criterionId,
+        outcome: 'passed',
+        evidence: 'Observed the saved value 42 in the actual app.',
+        strategy: 'Inspect actual state.',
+        nextAction: 'Review together.'
+      })
+    }
+    edit({ kind: 'phase', phase: 'review', reason: 'Ready for the user.' })
+    edit({ kind: 'accept' }, true)
+    const next = {
+      kind: 'create' as const,
+      objective: 'Prepare the next release',
+      criteria: [{ id: 'package', title: 'The release contains the verified files' }],
+      steps: [{ id: 'build', title: 'Build the release' }]
+    }
+    expect(() => edit(next)).toThrow('already has a plan')
+    expect(edit(next, true)).toMatchObject({
+      objective: 'Prepare the next release',
+      phase: 'planning',
+      revision: 6
+    })
+    expect(new WorkPlanStore(saved(), () => {}).read('chat-a')).toMatchObject({
+      objective: 'Prepare the next release',
+      revision: 6
+    })
+    expect(JSON.parse(saved())).toMatchObject({
+      archive: [
+        {
+          objective: 'Verify the real app flow',
+          phase: 'accepted',
+          criteria: [
+            { evidence: 'Observed the saved value 42 in the actual app.' },
+            { evidence: 'Observed the saved value 42 in the actual app.' }
+          ]
+        }
+      ]
+    })
+    expect(() =>
+      store.update(
+        'chat-a',
+        5,
+        { kind: 'phase', phase: 'working', reason: 'Late reply from the old goal.' },
+        false
+      )
+    ).toThrow('plan changed')
+  })
 })

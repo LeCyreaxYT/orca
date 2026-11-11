@@ -74,7 +74,7 @@ export function changeWorkPlan(
   now: string
 ): WorkPlan {
   if (command.kind === 'create') {
-    if (previous) {
+    if (previous && (!user || previous.phase !== 'accepted')) {
       throw new Error('This chat already has a plan. Keep its evidence and use rework.')
     }
     for (const entries of [command.criteria, command.steps]) {
@@ -85,7 +85,7 @@ export function changeWorkPlan(
     return WorkPlan.parse({
       sessionId,
       objective: command.objective,
-      revision: 1,
+      revision: (previous?.revision ?? 0) + 1,
       phase: 'planning',
       criteria: command.criteria,
       steps: command.steps,

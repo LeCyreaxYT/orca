@@ -21710,7 +21710,8 @@
       "feedback": "Feedback or missing input",
       "rework": "Continue with this feedback",
       "reload": "Reload plan",
-      "loading": "Loading plan…"
+      "loading": "Loading plan…",
+      "new": "Begin a new plan"
     },
     "sidebar": {
       "advanced": "Advanced"

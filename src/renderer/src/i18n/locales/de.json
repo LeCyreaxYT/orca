@@ -20925,7 +20925,8 @@
       "feedback": "Rückmeldung oder fehlende Angaben",
       "rework": "Mit dieser Rückmeldung weiterarbeiten",
       "reload": "Plan neu laden",
-      "loading": "Plan wird geladen…"
+      "loading": "Plan wird geladen…",
+      "new": "Neuen Plan beginnen"
     },
     "sidebar": {
       "advanced": "Erweitert"

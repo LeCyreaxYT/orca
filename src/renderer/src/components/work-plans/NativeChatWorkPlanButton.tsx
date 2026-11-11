@@ -47,6 +47,7 @@ function WorkPlanControl({
 }) {
   const t = useTranslate()
   const [open, setOpen] = useState(false)
+  const [newPlan, setNewPlan] = useState(false)
   const state = useWorkPlan(sessionId, target, open)
   const title = t('components.workPlan.title', 'Planning & goals')
   return (
@@ -111,16 +112,31 @@ function WorkPlanControl({
               <p className="text-sm text-muted-foreground" role="status">
                 {t('components.workPlan.loading', 'Loading plan…')}
               </p>
-            ) : state.plan ? (
-              <WorkPlanContent
-                plan={state.plan}
-                disabled={!state.ready || state.pending}
-                onUpdate={(command) => void state.update(command)}
-              />
+            ) : state.plan && !newPlan ? (
+              <>
+                <WorkPlanContent
+                  plan={state.plan}
+                  disabled={!state.ready || state.pending}
+                  onUpdate={(command) => void state.update(command)}
+                />
+                {state.plan.phase === 'accepted' ? (
+                  <Button
+                    className="mt-5"
+                    disabled={state.pending}
+                    onClick={() => setNewPlan(true)}
+                  >
+                    {t('components.workPlan.new', 'Begin a new plan')}
+                  </Button>
+                ) : null}
+              </>
             ) : state.ready ? (
               <WorkPlanEditor
                 disabled={state.pending}
-                onCreate={(command) => void state.update(command)}
+                onCreate={async (command) => {
+                  if (await state.update(command)) {
+                    setNewPlan(false)
+                  }
+                }}
               />
             ) : null}
           </div>
